@@ -2,7 +2,9 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import imageCompression from 'browser-image-compression';
-import toast from 'react-hot-toast'; // ✅ import toast
+import toast from 'react-hot-toast';
+
+const BASE_URL = import.meta.env.VITE_API_URL; // ✅ Use .env variable
 
 const AddProduct = () => {
   const [images, setImages] = useState([null, null, null, null]);
@@ -23,13 +25,12 @@ const AddProduct = () => {
         useWebWorker: true,
       };
       const compressedFile = await imageCompression(file, options);
-
       const updatedImages = [...images];
       updatedImages[index] = compressedFile;
       setImages(updatedImages);
     } catch (error) {
-      console.error("Error compressing the image:", error);
-      toast.error("Failed to compress image. Try a smaller file."); // ✅ toast for compression error
+      console.error("Error compressing image:", error);
+      toast.error("Failed to compress image. Try a smaller file.");
     }
   };
 
@@ -51,23 +52,23 @@ const AddProduct = () => {
 
       const token = localStorage.getItem("userToken");
 
-      await axios.post("http://localhost:5000/api/products", formData, {
+      await axios.post(`${BASE_URL}/products`, formData, {
         headers: {
           "Content-Type": "multipart/form-data",
           Authorization: `Bearer ${token}`,
         },
       });
 
-      toast.success("Product added successfully!"); // ✅ toast success
-      setProductName("");
-      setDescription("");
-      setCategory("");
-      setPrice("");
-      setOfferPrice("");
+      toast.success("Product added successfully!");
+      setProductName('');
+      setDescription('');
+      setCategory('');
+      setPrice('');
+      setOfferPrice('');
       setImages([null, null, null, null]);
     } catch (error) {
       console.error(error);
-      toast.error("Error adding product!"); // ✅ toast error
+      toast.error("Error adding product!");
     } finally {
       setLoading(false);
     }
@@ -103,7 +104,7 @@ const AddProduct = () => {
 
         {/* Product Name */}
         <div className="flex flex-col gap-1 max-w-md">
-          <label className="text-base font-medium" htmlFor="product-name">Product Name</label>
+          <label htmlFor="product-name" className="text-base font-medium">Product Name</label>
           <input
             id="product-name"
             type="text"
@@ -117,7 +118,7 @@ const AddProduct = () => {
 
         {/* Description */}
         <div className="flex flex-col gap-1 max-w-md">
-          <label className="text-base font-medium" htmlFor="product-description">Product Description</label>
+          <label htmlFor="product-description" className="text-base font-medium">Product Description</label>
           <textarea
             id="product-description"
             rows={4}
@@ -130,7 +131,7 @@ const AddProduct = () => {
 
         {/* Category */}
         <div className="w-full flex flex-col gap-1">
-          <label className="text-base font-medium" htmlFor="category">Category</label>
+          <label htmlFor="category" className="text-base font-medium">Category</label>
           <select
             id="category"
             className="outline-none md:py-2.5 py-2 px-3 rounded border border-gray-500/40"
@@ -148,7 +149,7 @@ const AddProduct = () => {
         {/* Prices */}
         <div className="flex items-center gap-5 flex-wrap">
           <div className="flex-1 flex flex-col gap-1 w-32">
-            <label className="text-base font-medium" htmlFor="product-price">Product Price</label>
+            <label htmlFor="product-price" className="text-base font-medium">Product Price</label>
             <input
               id="product-price"
               type="number"
@@ -160,7 +161,7 @@ const AddProduct = () => {
             />
           </div>
           <div className="flex-1 flex flex-col gap-1 w-32">
-            <label className="text-base font-medium" htmlFor="offer-price">Offer Price</label>
+            <label htmlFor="offer-price" className="text-base font-medium">Offer Price</label>
             <input
               id="offer-price"
               type="number"

@@ -7,20 +7,22 @@ const NewArrivals = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
+  const BASE_URL = import.meta.env.VITE_API_URL;
+
   useEffect(() => {
-    const fetchProducts = async () => {
+    const fetchNewArrivals = async () => {
       try {
-        const res = await axios.get("http://localhost:5000/api/products");
+        const res = await axios.get(`${BASE_URL}/products?sort=newest&limit=10`);
         setProducts(res.data);
         setLoading(false);
       } catch (err) {
-        console.error("Error fetching products:", err);
+        console.error("Error fetching new arrivals:", err);
         setError("Failed to load new arrivals.");
         setLoading(false);
       }
     };
 
-    fetchProducts();
+    fetchNewArrivals();
   }, []);
 
   if (loading) return <p className="text-center mt-10">Loading new arrivals...</p>;
@@ -29,13 +31,13 @@ const NewArrivals = () => {
   const ProductCard = ({ product }) => {
     const image = product.images?.[0] || "https://via.placeholder.com/300";
     return (
-      <div className="flex-shrink-0 w-56 bg-white shadow-md rounded-md overflow-hidden">
+      <div className="flex-shrink-0 w-56 bg-white shadow-md rounded-md overflow-hidden hover:scale-105 transition-transform duration-300">
         <Link to={`/products/${product._id}`} className="block">
           <img className="w-full h-64 object-cover" src={image} alt={product.name} />
           <div className="p-3">
             <p className="text-sm text-gray-700 truncate">{product.name}</p>
             <p className="text-xl font-bold text-gray-900">
-              ${product.price.toFixed(2)}
+              ${product.offerPrice ? product.offerPrice.toFixed(2) : product.price.toFixed(2)}
             </p>
           </div>
         </Link>
@@ -52,16 +54,15 @@ const NewArrivals = () => {
         Explore the latest additions to our collection.
       </p>
 
-      {/* ✅ Auto-scrolling carousel with hover pause */}
+      {/* Auto-scrolling carousel */}
       <div className="relative w-full overflow-hidden group">
-        <div className="flex gap-6 animate-scroll group-hover:[animation-play-state:paused]">
+        <div className="flex gap-6 animate-scroll group-hover:animate-scroll-slow">
           {products.concat(products).map((product, index) => (
             <ProductCard key={index} product={product} />
           ))}
         </div>
       </div>
 
-      {/* ✅ View All Products Button */}
       <div className="flex justify-center mt-8">
         <Link
           to="/products"
@@ -71,16 +72,31 @@ const NewArrivals = () => {
         </Link>
       </div>
 
-      {/* ✅ Animation CSS */}
+      {/* CSS for scrolling speed and hover effect */}
       <style>{`
         @keyframes scroll {
           0% { transform: translateX(0); }
           100% { transform: translateX(-50%); }
         }
+
+        @keyframes scrollSlow {
+          0% { transform: translateX(0); }
+          100% { transform: translateX(-50%); }
+        }
+
         .animate-scroll {
           display: flex;
           width: max-content;
-          animation: scroll 25s linear infinite;
+          animation: scroll 40s linear infinite; /* slower default speed */
+        }
+
+        .group:hover .animate-scroll {
+          animation: scrollSlow 80s linear infinite; /* slows down when hovering the carousel */
+        }
+
+        .animate-scroll div:hover {
+          transform: scale(1.05);
+          transition: transform 0.3s ease-in-out;
         }
       `}</style>
     </div>

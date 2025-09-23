@@ -5,6 +5,9 @@ import { useDispatch } from "react-redux";
 import { addToCart } from "../redux/cartSlice";
 import { AuthContext } from "../context/AuthContext";
 
+// Base URL from .env
+const BASE_URL = import.meta.env.VITE_API_URL;
+
 const ProductDetail = () => {
   const { id } = useParams();
   const [product, setProduct] = useState(null);
@@ -15,7 +18,7 @@ const ProductDetail = () => {
   useEffect(() => {
     const fetchProduct = async () => {
       try {
-        const res = await axios.get(`http://localhost:5000/api/products/${id}`);
+        const res = await axios.get(`${BASE_URL}/products/${id}`);
         setProduct(res.data);
         setThumbnail(res.data.images?.[0] || "");
       } catch (err) {

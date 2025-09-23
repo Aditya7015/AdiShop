@@ -2,6 +2,9 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 
+// Base URL from .env
+const BASE_URL = import.meta.env.VITE_API_URL;
+
 // ======================= THUNKS ======================= //
 
 // Fetch cart
@@ -9,7 +12,7 @@ export const fetchCart = createAsyncThunk(
   "cart/fetchCart",
   async (userId, { rejectWithValue }) => {
     try {
-      const res = await axios.get(`http://localhost:5000/api/cart/${userId}`);
+      const res = await axios.get(`${BASE_URL}/cart/${userId}`);
       return res.data?.products || [];
     } catch (err) {
       return rejectWithValue(err.response?.data?.message || "Failed to fetch cart");
@@ -17,18 +20,16 @@ export const fetchCart = createAsyncThunk(
   }
 );
 
-
 // Add product to cart
 export const addToCart = createAsyncThunk(
   "cart/addToCart",
   async ({ userId, productId, quantity }, { rejectWithValue }) => {
     try {
-      const res = await axios.post(`http://localhost:5000/api/cart/${userId}`, {
+      const res = await axios.post(`${BASE_URL}/cart/${userId}`, {
         productId,
         quantity,
       });
-      // backend returns cart.products array
-      return res.data;
+      return res.data; // backend returns cart.products array
     } catch (err) {
       return rejectWithValue(err.response?.data?.message || "Failed to add product");
     }
@@ -40,7 +41,7 @@ export const removeFromCart = createAsyncThunk(
   "cart/removeFromCart",
   async ({ userId, productId }, { rejectWithValue }) => {
     try {
-      const res = await axios.delete(`http://localhost:5000/api/cart/${userId}/${productId}`);
+      const res = await axios.delete(`${BASE_URL}/cart/${userId}/${productId}`);
       return res.data;
     } catch (err) {
       return rejectWithValue(err.response?.data?.message || "Failed to remove product");

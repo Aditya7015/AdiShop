@@ -6,6 +6,8 @@ import { AuthContext } from "../context/AuthContext";
 import { addToCart } from "../redux/cartSlice";
 import toast from 'react-hot-toast';
 
+// Base URL from .env
+const BASE_URL = import.meta.env.VITE_API_URL;
 
 const Products = () => {
   const { category } = useParams(); // comes from /shop/:category or undefined
@@ -26,7 +28,6 @@ const Products = () => {
   const dispatch = useDispatch();
   const { user } = useContext(AuthContext);
 
-  // Map URL category param → DB category
   const categoryMap = {
     mens: "Mens Wear",
     womens: "Womens Wear",
@@ -34,7 +35,6 @@ const Products = () => {
     beauty: "Beauty Products",
   };
 
-  // Sync route param with filters
   useEffect(() => {
     if (category && categoryMap[category]) {
       setFilters((prev) => ({ ...prev, category: categoryMap[category] }));
@@ -47,7 +47,7 @@ const Products = () => {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const res = await axios.get("http://localhost:5000/api/products");
+        const res = await axios.get(`${BASE_URL}/products`);
         setProducts(res.data);
         setFilteredProducts(res.data);
         setLoading(false);
@@ -104,14 +104,13 @@ const Products = () => {
             productId: product._id,
             quantity: 1,
           })
-        ).unwrap(); // unwrap ensures we catch errors
+        ).unwrap();
 
         toast.success(`${product.name} added to cart!`);
       } catch (err) {
         toast.error("Failed to add product to cart");
       }
     };
-
 
     const handleBuyNow = (e) => {
       e.stopPropagation();

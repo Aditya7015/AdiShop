@@ -2,6 +2,9 @@ import React, { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import axios from "axios";
 
+// Base URL from .env
+const BASE_URL = import.meta.env.VITE_API_URL;
+
 const CategoryPage = () => {
   const { category } = useParams(); // "mens", "womens", "kids", "beauty"
   const [products, setProducts] = useState([]);
@@ -31,7 +34,7 @@ const CategoryPage = () => {
     const fetchCategoryProducts = async () => {
       try {
         setLoading(true);
-        const res = await axios.get("http://localhost:5000/api/products");
+        const res = await axios.get(`${BASE_URL}/products`);
         const filtered = res.data.filter(
           (p) => p.category.toLowerCase() === categoryName.toLowerCase()
         );
@@ -98,10 +101,7 @@ const CategoryPage = () => {
               placeholder="Min"
               value={filters.minPrice}
               onChange={(e) =>
-                setFilters((prev) => ({
-                  ...prev,
-                  minPrice: Number(e.target.value),
-                }))
+                setFilters((prev) => ({ ...prev, minPrice: Number(e.target.value) }))
               }
             />
             <input
@@ -110,10 +110,7 @@ const CategoryPage = () => {
               placeholder="Max"
               value={filters.maxPrice}
               onChange={(e) =>
-                setFilters((prev) => ({
-                  ...prev,
-                  maxPrice: Number(e.target.value),
-                }))
+                setFilters((prev) => ({ ...prev, maxPrice: Number(e.target.value) }))
               }
             />
           </div>
@@ -127,9 +124,7 @@ const CategoryPage = () => {
             placeholder="Search brand"
             className="border p-2 rounded w-full"
             value={filters.brand}
-            onChange={(e) =>
-              setFilters((prev) => ({ ...prev, brand: e.target.value }))
-            }
+            onChange={(e) => setFilters((prev) => ({ ...prev, brand: e.target.value }))}
           />
         </div>
 
@@ -156,9 +151,7 @@ const CategoryPage = () => {
           <select
             className="border p-2 rounded"
             value={filters.sortBy}
-            onChange={(e) =>
-              setFilters((prev) => ({ ...prev, sortBy: e.target.value }))
-            }
+            onChange={(e) => setFilters((prev) => ({ ...prev, sortBy: e.target.value }))}
           >
             <option value="relevance">Relevance</option>
             <option value="lowToHigh">Price: Low to High</option>

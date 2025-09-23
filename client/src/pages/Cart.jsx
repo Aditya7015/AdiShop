@@ -10,6 +10,7 @@ const Cart = () => {
   const dispatch = useDispatch();
   const { items, loading, error } = useSelector((state) => state.cart);
 
+  // Fetch cart on load
   useEffect(() => {
     if (userId) dispatch(fetchCart(userId));
   }, [userId, dispatch]);
@@ -24,8 +25,11 @@ const Cart = () => {
     }
   };
 
-  const calculateSubtotal = (product, quantity) => (product?.offerPrice || product?.price || 0) * quantity;
-  const calculateTotalPrice = () => items.reduce((acc, item) => acc + calculateSubtotal(item.productId, item.quantity), 0);
+  const calculateSubtotal = (product, quantity) =>
+    (product?.offerPrice || product?.price || 0) * quantity;
+
+  const calculateTotalPrice = () =>
+    items.reduce((acc, item) => acc + calculateSubtotal(item.productId, item.quantity), 0);
 
   if (loading) return <p className="text-center mt-20">Loading cart...</p>;
   if (error) return <p className="text-center mt-20 text-red-500">{error}</p>;
@@ -43,7 +47,10 @@ const Cart = () => {
           items.map((item) => {
             const product = item.productId;
             return (
-              <div key={item._id} className="grid grid-cols-[2fr_1fr_1fr] text-gray-500 items-center text-sm md:text-base font-medium pt-3">
+              <div
+                key={item._id}
+                className="grid grid-cols-[2fr_1fr_1fr] text-gray-500 items-center text-sm md:text-base font-medium pt-3"
+              >
                 <div className="flex items-center md:gap-6 gap-3">
                   <div className="cursor-pointer w-24 h-24 flex items-center justify-center border border-gray-300 rounded overflow-hidden">
                     <img
@@ -57,7 +64,9 @@ const Cart = () => {
                     <div className="font-normal text-gray-500/70"><p>Qty: {item.quantity}</p></div>
                   </div>
                 </div>
-                <p className="text-center">${calculateSubtotal(product, item.quantity).toFixed(2)}</p>
+                <p className="text-center">
+                  ${calculateSubtotal(product, item.quantity).toFixed(2)}
+                </p>
                 <button
                   className="cursor-pointer mx-auto text-red-500 hover:text-red-700"
                   onClick={() => handleRemove(product._id)}
@@ -74,10 +83,22 @@ const Cart = () => {
         <h2 className="text-xl md:text-xl font-medium">Order Summary</h2>
         <hr className="border-gray-300 my-5" />
         <div className="text-gray-500 mt-4 space-y-2">
-          <p className="flex justify-between"><span>Price</span><span>${calculateTotalPrice().toFixed(2)}</span></p>
-          <p className="flex justify-between"><span>Shipping Fee</span><span className="text-green-600">Free</span></p>
-          <p className="flex justify-between"><span>Tax (2%)</span><span>${(calculateTotalPrice() * 0.02).toFixed(2)}</span></p>
-          <p className="flex justify-between text-lg font-medium mt-3"><span>Total Amount:</span><span>${(calculateTotalPrice() * 1.02).toFixed(2)}</span></p>
+          <p className="flex justify-between">
+            <span>Price</span>
+            <span>${calculateTotalPrice().toFixed(2)}</span>
+          </p>
+          <p className="flex justify-between">
+            <span>Shipping Fee</span>
+            <span className="text-green-600">Free</span>
+          </p>
+          <p className="flex justify-between">
+            <span>Tax (2%)</span>
+            <span>${(calculateTotalPrice() * 0.02).toFixed(2)}</span>
+          </p>
+          <p className="flex justify-between text-lg font-medium mt-3">
+            <span>Total Amount:</span>
+            <span>${(calculateTotalPrice() * 1.02).toFixed(2)}</span>
+          </p>
         </div>
       </div>
     </div>

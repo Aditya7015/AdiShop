@@ -21,8 +21,6 @@ import AddProduct from './pages/admin/AddProduct';
 import ProductStatus from './pages/admin/ProductList';
 import ProductDetail from './pages/ProductDetail';
 import CategoryPage from './pages/CategoryPage';
-import CheckoutSuccess from './pages/CheckoutSuccess';
-import CheckoutCancel from './pages/CheckoutCancel';
 
 const App = () => {
   const { user } = useContext(AuthContext);
@@ -49,8 +47,6 @@ const App = () => {
 <Route path="/about" element={<About />} />
 <Route path="/contact" element={<Contact />} />
 <Route path="/myorders" element={<MyOrders />} />
-<Route path='/checkout/success' element={<CheckoutSuccess />} />
-<Route path='/checkout/cancel' element={<CheckoutCancel />} />
 
 {/* Dynamic Category Page */}
 <Route path="/shop/:category" element={<CategoryPage />} />
