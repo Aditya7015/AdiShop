@@ -13,22 +13,25 @@ connectDB();
 
 const app = express();
 
-// Frontend URLs
-const FRONTEND_URL_PROD = process.env.FRONTEND_URL || ""; // deployed frontend URL
-const FRONTEND_URL_DEV = "http://localhost:3000"; // your local React app
+// Allowed origins
+const allowedOrigins = [
+  "http://localhost:3000", // local dev
+  process.env.FRONTEND_URL, // main production frontend URL
+];
 
-// Determine allowed origin based on environment
-const allowedOrigins = [FRONTEND_URL_PROD, FRONTEND_URL_DEV];
-
+// CORS middleware
 app.use(cors({
   origin: function(origin, callback) {
-    // allow requests with no origin (like Postman)
+    // allow requests with no origin (Postman)
     if (!origin) return callback(null, true);
-    if (allowedOrigins.indexOf(origin) === -1) {
-      const msg = `The CORS policy for this site does not allow access from the specified Origin: ${origin}`;
-      return callback(new Error(msg), false);
+
+    // allow localhost, main frontend, and any Vercel frontend deployments
+    if (allowedOrigins.includes(origin) || origin.endsWith(".vercel.app")) {
+      return callback(null, true);
     }
-    return callback(null, true);
+
+    // reject other origins
+    return callback(new Error(`CORS policy does not allow access from ${origin}`), false);
   },
   credentials: true,
 }));
