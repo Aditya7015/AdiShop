@@ -7,25 +7,16 @@ import connectDB from "./configs/db.js";
 import userRoutes from "./routes/UserRoutes.js";
 import productRoutes from "./routes/productRoutes.js";
 import cartRouter from "./routes/cartRoutes.js";
-import dashboardRoutes from './routes/dashboardRoutes.js';
-import stripeRoutes from "./routes/stripeRoutes.js";
-import orderRoutes from "./routes/orderRoutes.js";
-
-
+import dashboardRoutes from './routes/dashboardRoutes.js'
 
 
 dotenv.config();
 connectDB();
 
-
-
 const app = express();
 
 // Enable CORS and parse JSON requests
 app.use(cors());
-
-app.use("/api/stripe", stripeRoutes);
-
 app.use(express.json());
 
 // Test route
@@ -38,8 +29,6 @@ app.use("/api/users", userRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/cart", cartRouter);
 app.use("/api/dashboard", dashboardRoutes);
-app.use("/api/orders", orderRoutes);
-
 
 
 
