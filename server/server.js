@@ -4,7 +4,7 @@ dotenv.config();
 import cors from "cors";
 import connectDB from "./configs/db.js";
 
-import userRoutes from "./routes/UserRoutes.js";
+import userRoutes from "./routes/userRoutes.js";
 import productRoutes from "./routes/productRoutes.js";
 import cartRouter from "./routes/cartRoutes.js";
 import dashboardRoutes from './routes/dashboardRoutes.js'
