@@ -1,6 +1,8 @@
 // routes/orderRoutes.js
 import express from "express";
 import Order from "../models/Order.js";
+import { getOrderBySessionId } from "../controllers/orderControllers.js";
+
 
 const router = express.Router();
 
@@ -53,5 +55,8 @@ router.get("/customer/:customerId", async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 });
+
+router.get("/by-session/:sessionId", getOrderBySessionId);
+
 
 export default router;

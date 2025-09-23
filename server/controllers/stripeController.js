@@ -7,40 +7,57 @@ import crypto from "crypto";
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
 /**
- * Create a Stripe Checkout Session
- * Expects body: { items: [{ productId, quantity }], customer: {id,email,name} }
+ * POST /api/stripe/create-session
+ * body: { items: [{ productId, quantity }], customer: { id, email, name } }
  */
 export const createCheckoutSession = async (req, res) => {
   try {
     const { items, customer } = req.body;
+
     if (!items || !Array.isArray(items) || items.length === 0) {
-      return res.status(400).json({ message: "No items provided" });
+      return res.status(400).json({ message: "Cart is empty" });
     }
 
-    // Build line_items for Stripe
-    const line_items = await Promise.all(
-      items.map(async (it) => {
-        const product = await Product.findById(it.productId);
-        if (!product) throw new Error(`Product ${it.productId} not found`);
+    // Fetch product details from DB and prepare line_items
+    const line_items = [];
+    const productsForOrder = []; // to later store in Order
+    let amountTotal = 0;
 
-        return {
-          price_data: {
-            currency: "inr", // change if needed
-            product_data: {
-              name: product.name,
-              description: product.description || undefined,
-              images: product.images?.length ? [product.images[0]] : undefined,
-              metadata: { productId: product._id.toString() },
-            },
-            unit_amount: Math.round((product.price || 0) * 100), // Stripe wants cents/paise
+    for (const it of items) {
+      const product = await Product.findById(it.productId);
+      if (!product) return res.status(404).json({ message: "Product not found: " + it.productId });
+
+      const quantity = it.quantity || 1;
+      // Stripe expects amount in cents
+      const unitAmount = Math.round((product.offerPrice ?? product.price) * 100);
+
+      line_items.push({
+        price_data: {
+          currency: "usd", // or currency you use
+          product_data: {
+            name: product.name,
+            description: product.description?.slice(0, 200) || "",
+            metadata: { productId: product._id.toString() },
           },
-          quantity: it.quantity || 1,
-        };
-      })
-    );
+          unit_amount: unitAmount,
+        },
+        quantity,
+      });
 
-    // Generate orderId for metadata
+      amountTotal += unitAmount * quantity;
+      productsForOrder.push({ product: product._id, quantity });
+    }
+
+    // Optionally create a preliminary Order with "pending" status
     const orderId = crypto.randomBytes(8).toString("hex");
+    const newOrder = await Order.create({
+      orderId,
+      customer: customer?.id || customer?.email || "guest",
+      amount: amountTotal / 100,
+      paymentStatus: "pending",
+      status: "Pending",
+      products: productsForOrder,
+    });
 
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
@@ -51,66 +68,77 @@ export const createCheckoutSession = async (req, res) => {
       cancel_url: `${process.env.FRONTEND_URL}/checkout/cancel`,
       metadata: {
         customerId: customer?.id || "",
-        orderId,
+        orderId: newOrder.orderId,
+        mongoOrderId: newOrder._id.toString(),
       },
     });
 
+    // Return the session id to frontend to redirect
     res.json({ sessionId: session.id });
   } catch (err) {
     console.error("createCheckoutSession error:", err);
-    res.status(500).json({ message: err.message || "Server error" });
+    res.status(500).json({ message: "Internal server error", error: err.message });
   }
 };
 
 /**
- * Stripe Webhook handler
- * Needs raw body, see server.js configuration
+ * Webhook handler for Stripe events
+ * This endpoint must receive the raw body (see stripeRoutes.js)
  */
 export const stripeWebhookHandler = async (req, res) => {
   const sig = req.headers["stripe-signature"];
-  try {
-    const event = stripe.webhooks.constructEvent(
-      req.rawBody,
-      sig,
-      process.env.STRIPE_WEBHOOK_SECRET
-    );
+  const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
+  let event;
+
+  try {
+    event = stripe.webhooks.constructEvent(req.rawBody, sig, webhookSecret);
+  } catch (err) {
+    console.error("⚠️  Webhook signature verification failed.", err.message);
+    return res.status(400).send(`Webhook Error: ${err.message}`);
+  }
+
+  try {
     if (event.type === "checkout.session.completed") {
       const session = event.data.object;
 
-      const orderId = session.metadata?.orderId || `ord_${session.id}`;
-      const customerId =
-        session.metadata?.customerId || session.customer_email || "guest";
-      const amountTotal = session.amount_total || 0;
+      // session.metadata should contain mongoOrderId (we set it above)
+      const mongoOrderId = session.metadata?.mongoOrderId;
+      const stripeSessionId = session.id;
+      const amountTotal = session.amount_total ? session.amount_total / 100 : undefined;
 
-      // Fetch line items
-      const lineItems = await stripe.checkout.sessions.listLineItems(
-        session.id,
-        { limit: 100 }
-      );
-
-      const products = lineItems.data.map((li) => ({
-        product: null, // optional: map to your DB product if you add productId metadata
-        quantity: li.quantity,
-      }));
-
-      // Prevent duplicate order creation
-      const existing = await Order.findOne({ stripeSessionId: session.id });
-      if (!existing) {
-        await Order.create({
-          orderId,
-          customer: customerId,
-          amount: amountTotal / 100,
-          paymentStatus: "paid",
-          stripeSessionId: session.id,
-          products,
-        });
+      // Update the order in DB using mongoOrderId or orderId
+      if (mongoOrderId) {
+        await Order.findByIdAndUpdate(
+          mongoOrderId,
+          {
+            paymentStatus: "paid",
+            stripeSessionId,
+            amount: amountTotal ?? undefined,
+            status: "Pending",
+          },
+          { new: true }
+        );
+      } else if (session.metadata?.orderId) {
+        await Order.findOneAndUpdate(
+          { orderId: session.metadata.orderId },
+          { paymentStatus: "paid", stripeSessionId, amount: amountTotal ?? undefined },
+          { new: true }
+        );
+      }
+    } else if (event.type === "checkout.session.async_payment_failed") {
+      // handle failed payments
+      const session = event.data.object;
+      const mongoOrderId = session.metadata?.mongoOrderId;
+      if (mongoOrderId) {
+        await Order.findByIdAndUpdate(mongoOrderId, { paymentStatus: "failed" });
       }
     }
 
-    res.status(200).json({ received: true });
+    // Return a 200 to acknowledge receipt of the event
+    res.json({ received: true });
   } catch (err) {
-    console.error("Webhook Error:", err);
-    res.status(400).send(`Webhook error: ${err.message}`);
+    console.error("Webhook processing error:", err);
+    res.status(500).send(`Webhook handler error: ${err.message}`);
   }
 };

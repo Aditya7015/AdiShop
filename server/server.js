@@ -17,10 +17,15 @@ import orderRoutes from "./routes/orderRoutes.js";
 dotenv.config();
 connectDB();
 
+
+
 const app = express();
 
 // Enable CORS and parse JSON requests
 app.use(cors());
+
+app.use("/api/stripe", stripeRoutes);
+
 app.use(express.json());
 
 // Test route
@@ -33,7 +38,6 @@ app.use("/api/users", userRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/cart", cartRouter);
 app.use("/api/dashboard", dashboardRoutes);
-app.use("/api/stripe", stripeRoutes);
 app.use("/api/orders", orderRoutes);
 
 

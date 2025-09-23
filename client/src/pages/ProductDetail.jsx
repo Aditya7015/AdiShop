@@ -4,6 +4,7 @@ import axios from "axios";
 import { useDispatch } from "react-redux";
 import { addToCart } from "../redux/cartSlice";
 import { AuthContext } from "../context/AuthContext";
+import toast, { Toaster } from "react-hot-toast";
 
 const ProductDetail = () => {
   const { id } = useParams();
@@ -19,6 +20,7 @@ const ProductDetail = () => {
         setProduct(res.data);
         setThumbnail(res.data.images?.[0] || "");
       } catch (err) {
+        toast.error("Failed to load product");
         console.error("Error fetching product:", err);
       }
     };
@@ -29,19 +31,53 @@ const ProductDetail = () => {
 
   const handleAddToCart = () => {
     if (!user?._id) {
-      alert("Please login to add items to your cart");
+      toast.error("Please login to add items to your cart");
       return;
     }
 
-    dispatch(addToCart({
-      userId: user._id,
-      productId: product._id,
-      quantity: 1,
-    }));
+    dispatch(
+      addToCart({
+        userId: user._id,
+        productId: product._id,
+        quantity: 1,
+      })
+    );
+    toast.success("Item added to cart");
+  };
+
+  // 🔹 Direct Buy Now → Stripe checkout
+  const handleBuyNow = async () => {
+    if (!user?._id) {
+      toast.error("Please login to buy this product");
+      return;
+    }
+
+    try {
+      const cartItems = [
+        {
+          name: product.name,
+          price: product.offerPrice || product.price,
+          quantity: 1,
+        },
+      ];
+
+      const { data } = await axios.post(
+        "http://localhost:5000/api/stripe/create-checkout-session",
+        { cartItems }
+      );
+
+      window.location.href = `https://checkout.stripe.com/pay/${data.id}`;
+    } catch (err) {
+      console.error("Buy Now failed:", err);
+      toast.error("Something went wrong. Please try again.");
+    }
   };
 
   return (
     <div className="max-w-6xl w-full px-6 mx-auto">
+      {/* Toast container */}
+      <Toaster position="top-right" reverseOrder={false} />
+
       <p className="text-gray-500 text-sm">
         <span>Home</span> / <span>Products</span> / <span>{product.category}</span> /{" "}
         <span className="text-indigo-500">{product.name}</span>
@@ -96,7 +132,10 @@ const ProductDetail = () => {
             >
               Add to Cart
             </button>
-            <button className="w-full py-3.5 font-medium bg-indigo-500 text-white hover:bg-indigo-600 transition">
+            <button
+              onClick={handleBuyNow}
+              className="w-full py-3.5 font-medium bg-indigo-500 text-white hover:bg-indigo-600 transition"
+            >
               Buy now
             </button>
           </div>
