@@ -13,24 +13,18 @@ connectDB();
 
 const app = express();
 
-// Allowed origins
-const allowedOrigins = [
-  "http://localhost:3000", // local dev
-  process.env.FRONTEND_URL, // main production frontend URL
-];
-
-// CORS middleware
+// CORS middleware: allow localhost, all Vercel frontends, and Postman
 app.use(cors({
   origin: function(origin, callback) {
-    // allow requests with no origin (Postman)
-    if (!origin) return callback(null, true);
+    if (!origin) return callback(null, true); // Postman or server-to-server requests
 
-    // allow localhost, main frontend, and any Vercel frontend deployments
-    if (allowedOrigins.includes(origin) || origin.endsWith(".vercel.app")) {
-      return callback(null, true);
-    }
+    // Allow localhost
+    if (origin === "http://localhost:3000") return callback(null, true);
 
-    // reject other origins
+    // Allow any frontend hosted on Vercel (including previews)
+    if (origin.endsWith(".vercel.app")) return callback(null, true);
+
+    // Block everything else
     return callback(new Error(`CORS policy does not allow access from ${origin}`), false);
   },
   credentials: true,
