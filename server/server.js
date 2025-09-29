@@ -23,11 +23,17 @@ const FRONTEND_URL = process.env.FRONTEND_URL;
 //   credentials: true,
 // }));
 
+// app.use(cors({
+//   origin: FRONTEND_URL || "*", // fallback for safety
+//   methods: ["GET", "POST", "PUT", "DELETE"],
+//   credentials: true,
+// }));
+
 app.use(cors({
-  origin: FRONTEND_URL || "*", // fallback for safety
-  methods: ["GET", "POST", "PUT", "DELETE"],
+  origin: [ "http://localhost:5173", "https://adi-shop-nine.vercel.app" ],
   credentials: true,
 }));
+
 
 
 app.use(express.json());
