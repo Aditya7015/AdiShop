@@ -33,13 +33,27 @@ const Navbar = () => {
       <div className="hidden sm:flex items-center gap-4 md:gap-8">
         <Link to="/">Home</Link>
         <Link to="/products">Products</Link>
+
+        {/* Categories */}
+        {/* Categories (Desktop) */}
+        <Link to="/shop/mens">Men</Link>
+        <Link to="/shop/womens">Women</Link>
+        <Link to="/shop/kids">Kids</Link>
+        <Link to="/shop/beauty">Accessories</Link>
+
+
         <Link to="/about">About</Link>
         <Link to="/contact">Contact</Link>
 
         {/* Cart */}
         <Link to="/cart" className="relative cursor-pointer">
           <svg width="18" height="18" viewBox="0 0 14 14" fill="none">
-            <path d="M.583.583h2.333l1.564 7.81a1.17 1.17 0 0 0 1.166.94h5.67a1.17 1.17 0 0 0 1.167-.94l.933-4.893H3.5" stroke="#615fff" strokeLinecap="round" strokeLinejoin="round" />
+            <path
+              d="M.583.583h2.333l1.564 7.81a1.17 1.17 0 0 0 1.166.94h5.67a1.17 1.17 0 0 0 1.167-.94l.933-4.893H3.5"
+              stroke="#615fff"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
           </svg>
           {cartCount > 0 && (
             <span className="absolute -top-2 -right-3 text-xs text-white bg-indigo-500 w-[18px] h-[18px] rounded-full flex items-center justify-center">
@@ -102,9 +116,22 @@ const Navbar = () => {
       </button>
 
       {/* Mobile Menu */}
-      <div className={`${open ? 'flex' : 'hidden'} absolute top-[60px] left-0 w-full bg-white shadow-md py-4 flex-col items-start gap-2 px-5 text-sm md:hidden`}>
+      <div
+        className={`${
+          open ? "flex" : "hidden"
+        } absolute top-[60px] left-0 w-full bg-white shadow-md py-4 flex-col items-start gap-2 px-5 text-sm md:hidden`}
+      >
         <Link to="/" className="block">Home</Link>
         <Link to="/products" className="block">Products</Link>
+
+        {/* Categories (Mobile) */}
+        {/* Categories (Desktop) */}
+        <Link to="/shop/mens">Men</Link>
+        <Link to="/shop/womens">Women</Link>
+        <Link to="/shop/kids">Kids</Link>
+        <Link to="/shop/beauty">Accessories</Link>
+
+
         <Link to="/about" className="block">About</Link>
         <Link to="/contact" className="block">Contact</Link>
         <Link to="/cart" className="block">Cart ({cartCount})</Link>
