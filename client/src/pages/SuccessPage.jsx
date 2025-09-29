@@ -11,11 +11,13 @@ const Success = () => {
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  const API_URL = import.meta.env.VITE_API_URL; // <-- use VITE_API_URL
+
   useEffect(() => {
     const fetchOrder = async () => {
       if (!sessionId) return;
       try {
-        const res = await fetch(`http://localhost:5000/api/orders/session/${sessionId}`);
+        const res = await fetch(`${API_URL}/orders/session/${sessionId}`);
         const data = await res.json();
         if (res.ok) {
           setOrder(data.order);
@@ -33,7 +35,7 @@ const Success = () => {
     };
 
     fetchOrder();
-  }, [sessionId]);
+  }, [sessionId, API_URL]);
 
   if (loading) return <p className="text-center mt-20">Loading order...</p>;
   if (!order) return <p className="text-center mt-20 text-red-500">Order not found.</p>;
