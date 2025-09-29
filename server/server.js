@@ -18,10 +18,17 @@ const FRONTEND_URL = process.env.FRONTEND_URL;
 
 // Enable CORS and parse JSON requests
 // app.use(cors());
+// app.use(cors({
+//   origin: FRONTEND_URL,
+//   credentials: true,
+// }));
+
 app.use(cors({
-  origin: FRONTEND_URL,
+  origin: FRONTEND_URL || "*", // fallback for safety
+  methods: ["GET", "POST", "PUT", "DELETE"],
   credentials: true,
 }));
+
 
 app.use(express.json());
 
