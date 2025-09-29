@@ -144,73 +144,89 @@ useEffect(() => {
   if (error) return <p className="text-center mt-20 text-red-500">{error}</p>;
 
   const ProductCard = ({ product }) => {
-    const image = product.images?.[0] || "https://via.placeholder.com/300";
+  const image = product.images?.[0] || "https://via.placeholder.com/300";
+  const [addedToCart, setAddedToCart] = useState(false);
 
-    const handleAddToCart = async (e) => {
-      e.stopPropagation();
-      if (!user) return toast.error("Please login first!");
+  const handleAddToCart = async (e) => {
+    e.stopPropagation();
+    if (!user) return toast.error("Please login first!");
 
-      try {
-        await dispatch(
-          addToCart({
-            userId: user._id,
-            productId: product._id,
-            quantity: 1,
-          })
-        ).unwrap();
+    try {
+      await dispatch(
+        addToCart({
+          userId: user._id,
+          productId: product._id,
+          quantity: 1,
+        })
+      ).unwrap();
 
-        toast.success(`${product.name} added to cart!`);
-      } catch (err) {
-        toast.error("Failed to add product to cart");
-      }
-    };
+      toast.success(`${product.name} added to cart!`);
+      setAddedToCart(true); // Switch button to Buy Now
+    } catch (err) {
+      toast.error("Failed to add product to cart");
+    }
+  };
 
-    return (
-      <div
-        onClick={() => navigate(`/products/${product._id}`)}
-        className="bg-white rounded-md shadow-sm hover:shadow-md cursor-pointer overflow-hidden transition"
-      >
-        <img
-          src={image}
-          alt={product.name}
-          className="w-full h-64 object-cover"
-        />
-        <div className="p-3">
-          <p className="text-sm text-gray-600">{product.brand || "Brand"}</p>
-          <h3 className="font-medium text-gray-800 truncate">
-            {product.name}
-          </h3>
-          <p className="text-gray-900 font-semibold">
-            ₹{product.price}{" "}
-            {product.originalPrice && (
-              <>
-                <span className="text-gray-400 line-through ml-1">
-                  ₹{product.originalPrice}
-                </span>
-                <span className="text-green-600 text-sm ml-1">
-                  ({Math.round(
-                    ((product.originalPrice - product.price) /
-                      product.originalPrice) *
-                      100
-                  )}
-                  % OFF)
-                </span>
-              </>
-            )}
-          </p>
-          {product.rating && (
-            <p className="text-yellow-500 text-sm">⭐ {product.rating}</p>
+  const handleBuyNow = (e) => {
+    e.stopPropagation();
+    // Navigate to checkout or cart page
+    navigate(`/cart`);
+  };
+
+  return (
+    <div
+      onClick={() => navigate(`/products/${product._id}`)}
+      className="bg-white rounded-md shadow-sm hover:shadow-md cursor-pointer overflow-hidden transition"
+    >
+      <img
+        src={image}
+        alt={product.name}
+        className="w-full h-64 object-cover"
+      />
+      <div className="p-3">
+        <p className="text-sm text-gray-600">{product.brand || "Brand"}</p>
+        <h3 className="font-medium text-gray-800 truncate">{product.name}</h3>
+        <p className="text-gray-900 font-semibold">
+          ₹{product.price}{" "}
+          {product.originalPrice && (
+            <>
+              <span className="text-gray-400 line-through ml-1">
+                ₹{product.originalPrice}
+              </span>
+              <span className="text-green-600 text-sm ml-1">
+                ({Math.round(
+                  ((product.originalPrice - product.price) /
+                    product.originalPrice) *
+                    100
+                )}
+                % OFF)
+              </span>
+            </>
           )}
+        </p>
+        {product.rating && <p className="text-yellow-500 text-sm">⭐ {product.rating}</p>}
+
+        {/* Conditional Button */}
+        {!addedToCart ? (
           <button
             onClick={handleAddToCart}
             className="mt-2 w-full bg-slate-800 text-white py-1.5 rounded hover:bg-slate-700 transition"
           >
             Add to Cart
           </button>
-        </div>
+        ) : (
+          <button
+            onClick={handleBuyNow}
+            className="mt-2 w-full bg-green-600 text-white py-1.5 rounded hover:bg-green-500 transition"
+          >
+            Buy Now
+          </button>
+        )}
       </div>
-    );
-  };
+    </div>
+  );
+};
+
 
   return (
     <div className="flex bg-gray-100 min-h-screen">

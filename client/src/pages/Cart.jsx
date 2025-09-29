@@ -31,11 +31,17 @@ const Cart = () => {
   const calculateTotalPrice = () =>
     items.reduce((acc, item) => acc + calculateSubtotal(item.productId, item.quantity), 0);
 
+  const handleBuyNow = () => {
+    if (items.length === 0) return;
+    toast('Buy Now clicked!'); // Placeholder, replace with Stripe checkout later
+  };
+
   if (loading) return <p className="text-center mt-20">Loading cart...</p>;
   if (error) return <p className="text-center mt-20 text-red-500">{error}</p>;
 
   return (
     <div className="flex flex-col md:flex-row py-16 max-w-6xl w-full px-6 mx-auto">
+      {/* Cart Items */}
       <div className="flex-1 max-w-4xl">
         <h1 className="text-3xl font-medium mb-6">
           Shopping Cart <span className="text-sm text-indigo-500">{items.length} Items</span>
@@ -61,7 +67,9 @@ const Cart = () => {
                   </div>
                   <div>
                     <p className="hidden md:block font-semibold">{product?.name}</p>
-                    <div className="font-normal text-gray-500/70"><p>Qty: {item.quantity}</p></div>
+                    <div className="font-normal text-gray-500/70">
+                      <p>Qty: {item.quantity}</p>
+                    </div>
                   </div>
                 </div>
                 <p className="text-center">
@@ -79,6 +87,7 @@ const Cart = () => {
         )}
       </div>
 
+      {/* Order Summary */}
       <div className="max-w-[360px] w-full bg-gray-100/40 p-5 max-md:mt-16 border border-gray-300/70">
         <h2 className="text-xl md:text-xl font-medium">Order Summary</h2>
         <hr className="border-gray-300 my-5" />
@@ -100,6 +109,19 @@ const Cart = () => {
             <span>${(calculateTotalPrice() * 1.02).toFixed(2)}</span>
           </p>
         </div>
+
+        {/* Buy Now Button */}
+        <button
+          className={`w-full mt-5 text-white py-3 rounded text-lg font-medium transition-all ${
+            items.length === 0
+              ? 'bg-gray-400 cursor-not-allowed'
+              : 'bg-indigo-600 hover:bg-indigo-700'
+          }`}
+          onClick={handleBuyNow}
+          disabled={items.length === 0}
+        >
+          Buy Now
+        </button>
       </div>
     </div>
   );
