@@ -13,16 +13,21 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req, r
 
   try {
     event = stripe.webhooks.constructEvent(req.body, sig, endpointSecret);
+    console.log("Webhook received:", event.type);
   } catch (err) {
-    console.log("Webhook signature verification failed:", err.message);
+    console.error("Webhook signature verification failed:", err.message);
     return res.status(400).send(`Webhook Error: ${err.message}`);
   }
 
   if (event.type === 'checkout.session.completed') {
     const session = event.data.object;
+    console.log("Checkout session completed:", JSON.stringify(session, null, 2));
+
     try {
       const order = await Order.findOne({ stripeSessionId: session.id });
-      if (order) {
+      if (!order) {
+        console.warn(`No order found for sessionId: ${session.id}`);
+      } else {
         order.paymentStatus = 'paid';
         await order.save();
         console.log(`Order ${order.orderId} marked as paid`);
