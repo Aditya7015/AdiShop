@@ -31,9 +31,23 @@ const Cart = () => {
   const calculateTotalPrice = () =>
     items.reduce((acc, item) => acc + calculateSubtotal(item.productId, item.quantity), 0);
 
-  const handleBuyNow = () => {
+  const handleBuyNow = async () => {
     if (items.length === 0) return;
-    toast('Buy Now clicked!'); // Placeholder, replace with Stripe checkout later
+
+    try {
+      const res = await fetch('http://localhost:5000/api/stripe/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId }),
+      });
+      const data = await res.json();
+      if (data.url) {
+        window.location.href = data.url; // Redirect to Stripe Checkout
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error('Failed to initiate payment');
+    }
   };
 
   if (loading) return <p className="text-center mt-20">Loading cart...</p>;

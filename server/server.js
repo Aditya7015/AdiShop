@@ -8,10 +8,17 @@ import userRoutes from "./routes/userRoutes.js";
 import productRoutes from "./routes/productRoutes.js";
 import cartRouter from "./routes/cartRoutes.js";
 import dashboardRoutes from './routes/dashboardRoutes.js'
+import stripeRoutes from './routes/stripeRoutes.js';
+import webhookRoutes from './routes/webhookRoutes.js';
+import orderRoutes from "./routes/orderRoutes.js";
+
+
 
 
 dotenv.config();
 connectDB();
+
+
 
 const app = express();
 const FRONTEND_URL = process.env.FRONTEND_URL;
@@ -48,6 +55,11 @@ app.use("/api/users", userRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/cart", cartRouter);
 app.use("/api/dashboard", dashboardRoutes);
+app.use('/api/stripe', stripeRoutes);
+app.use('/api/webhook', webhookRoutes);
+app.use("/api/orders", orderRoutes);
+
+
 
 
 
