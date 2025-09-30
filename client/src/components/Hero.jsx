@@ -1,58 +1,58 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import hero from "../assets/hero-image.jpg";
+import hero from '../assets/hero-image.jpg'
 
 const Hero = () => {
   return (
     <section
-      className="flex flex-col items-center justify-center min-h-screen text-center text-white px-4 sm:px-6 lg:px-8 bg-cover bg-center"
+      className="flex flex-col items-center pb-48 text-center text-white max-md:px-2 bg-cover bg-center"
       style={{ backgroundImage: `url(${hero})` }}
     >
-      {/* Community Preview */}
-      <div className="flex items-center justify-center gap-2 px-3 py-1.5 mt-24 md:mt-28 rounded-full border border-slate-400 text-xs bg-black/30 backdrop-blur-sm">
-        <div className="flex -space-x-2">
+      {/* Navbar inside Hero (optional if you want hero + navbar together) */}
+      
+      {/* Community Preview (optional) */}
+      <div className="flex flex-wrap items-center justify-center p-1.5 mt-24 md:mt-28 rounded-full border border-slate-400 text-xs">
+        <div className="flex items-center">
           <img
-            className="h-6 w-6 sm:h-7 sm:w-7 rounded-full border-2 border-white"
+            className="h-7 w-7 rounded-full border-2 border-white"
             src="https://images.unsplash.com/photo-1633332755192-727a05c4013d?q=80&w=50"
             alt="user1"
           />
           <img
-            className="h-6 w-6 sm:h-7 sm:w-7 rounded-full border-2 border-white"
+            className="h-7 w-7 rounded-full border-2 border-white -translate-x-2"
             src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=50"
             alt="user2"
           />
           <img
-            className="h-6 w-6 sm:h-7 sm:w-7 rounded-full border-2 border-white"
-            src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?q=80&w=50"
+            className="h-7 w-7 rounded-full border-2 border-white -translate-x-4"
+            src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?q=80&w=50&h=50&auto=format&fit=crop"
             alt="user3"
           />
         </div>
-        <p className="whitespace-nowrap text-xs sm:text-sm">
-          Join a community of 1M+ shoppers
-        </p>
+        <p className="-translate-x-2">Join a community of 1M+ shoppers</p>
       </div>
 
       {/* Headline */}
-      <h1 className="font-berkshire text-3xl sm:text-4xl md:text-6xl leading-tight mt-6 max-w-3xl px-2">
+      <h1 className="font-berkshire text-[45px]/[52px] md:text-6xl/[65px] mt-6 max-w-4xl">
         Discover the Best Products Online
       </h1>
-      <p className="text-sm sm:text-base mt-3 max-w-xl px-2">
+      <p className="text-base mt-2 max-w-xl">
         Browse our wide selection of electronics, fashion, and home essentials.
       </p>
-      <p className="text-sm sm:text-base mt-2 md:mt-4 max-w-xl px-2">
+      <p className="text-base mt-3 md:mt-7 max-w-xl">
         Get exclusive deals and limited-time offers. Shop now and save!
       </p>
 
       {/* Email / CTA Form */}
-      <form className="flex flex-col sm:flex-row items-stretch mt-8 w-full max-w-md gap-3">
+      <form className="flex items-center mt-8 max-w-lg h-16 w-full rounded-full border border-slate-50">
         <input
           type="email"
           placeholder="Enter your email for updates & deals"
-          className="flex-1 h-12 outline-none bg-white/20 px-4 text-white placeholder:text-slate-200 rounded-full sm:rounded-l-full sm:rounded-r-none"
+          className="w-full h-full outline-none bg-transparent pl-6 pr-2 text-white placeholder:text-slate-300 rounded-full"
         />
         <Link
           to="/products"
-          className="bg-white text-slate-800 hover:bg-gray-300 px-6 h-12 rounded-full sm:rounded-r-full sm:rounded-l-none font-medium transition flex items-center justify-center whitespace-nowrap"
+          className="bg-white text-slate-800 hover:bg-gray-300 text-nowrap px-8 md:px-10 h-12 mr-2 rounded-full font-medium transition flex items-center justify-center"
         >
           Shop Now
         </Link>
