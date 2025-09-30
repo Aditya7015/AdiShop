@@ -43,6 +43,8 @@ app.use(cors({
 
 
 
+app.use('/api/webhook', webhookRoutes);
+
 app.use(express.json());
 
 // Test route
@@ -56,7 +58,7 @@ app.use("/api/products", productRoutes);
 app.use("/api/cart", cartRouter);
 app.use("/api/dashboard", dashboardRoutes);
 app.use('/api/stripe', stripeRoutes);
-app.use('/api/webhook', webhookRoutes);
+
 app.use("/api/orders", orderRoutes);
 
 
