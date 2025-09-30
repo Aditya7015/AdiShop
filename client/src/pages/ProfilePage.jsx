@@ -407,9 +407,13 @@ const ProfilePage = () => {
                                 <div className="mt-2 text-xs text-gray-500">
                                   Delivered on {new Date(order.createdAt).toLocaleDateString()}
                                 </div>
-                                <button className="mt-3 px-4 py-1.5 text-sm border border-gray-300 rounded-md text-gray-700 hover:bg-gray-100">
+                                <Link
+                                  to={`/order/${order._id}`}
+                                  className="inline-block mt-3 px-4 py-1.5 text-sm border border-gray-300 rounded-md text-gray-700 hover:bg-gray-100 transition-colors"
+                                >
                                   View Details
-                                </button>
+                                </Link>
+
                               </div>
                             </div>
                           );

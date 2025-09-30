@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useContext } from "react";
 import { AuthContext } from "../context/AuthContext";
+import { Link } from 'react-router-dom';
 
 const MyOrders = () => {
   const { user } = useContext(AuthContext);
@@ -113,9 +114,12 @@ const MyOrders = () => {
                       <div className="mt-2 text-xs text-gray-500">
                         Delivered on {new Date(order.createdAt).toLocaleDateString()}
                       </div>
-                      <button className="mt-3 px-4 py-1.5 text-sm border border-gray-300 rounded-md text-gray-700 hover:bg-gray-100">
-                        View Details
-                      </button>
+                        <Link
+                          to={`/order/${order._id}`}
+                          className="mt-3 px-4 py-1.5 text-sm border border-gray-300 rounded-md text-gray-700 hover:bg-gray-100 transition-colors text-center"
+                        >
+                          View Details
+                        </Link>
                     </div>
                   </div>
                 );
