@@ -1,44 +1,28 @@
 import React, { useState, useEffect, useContext } from "react";
-import { AuthContext } from "../context/AuthContext";
 import { Link, useNavigate } from "react-router-dom";
-import { useDispatch } from "react-redux";
+import { AuthContext } from "../context/AuthContext";
+import { useDispatch, useSelector } from "react-redux";
 import { addToCart } from "../redux/cartSlice";
-import { AiOutlineHeart, AiFillHeart } from "react-icons/ai";
-import axios from "axios";
+import { removeFromWishlist, fetchWishlist } from "../redux/wishlistSlice";
+import { AiOutlineHeart, AiOutlineDelete, AiOutlineShopping } from "react-icons/ai";
 import toast from "react-hot-toast";
 
 const WishlistPage = () => {
   const { user } = useContext(AuthContext);
   const token = user?.token;
-  const [wishlist, setWishlist] = useState([]);
+  const [addedToCartMap, setAddedToCartMap] = useState({});
   const BASE_URL = import.meta.env.VITE_API_URL;
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  const fetchWishlist = async () => {
-    if (!token) return;
-    try {
-      const res = await axios.get(`${BASE_URL}/users/wishlist`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setWishlist(res.data.items || []);
-    } catch (err) {
-      console.error("Fetch wishlist error:", err);
-    }
-  };
+  // Use Redux for wishlist
+  const { items: wishlist, loading } = useSelector((state) => state.wishlist);
 
-  const removeFromWishlist = async (productId, productName) => {
-    try {
-      await axios.delete(`${BASE_URL}/users/wishlist/${productId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setWishlist(wishlist.filter((item) => item._id !== productId));
-      toast.success(`${productName} removed from wishlist!`);
-    } catch (err) {
-      console.error("Remove wishlist error:", err);
-      toast.error("Failed to remove from wishlist");
+  useEffect(() => {
+    if (token) {
+      dispatch(fetchWishlist(token));
     }
-  };
+  }, [token, dispatch]);
 
   const handleAddToCart = async (product) => {
     if (!user) return toast.error("Please login first!");
@@ -52,6 +36,7 @@ const WishlistPage = () => {
         })
       ).unwrap();
       toast.success(`${product.name} added to cart!`);
+      setAddedToCartMap(prev => ({ ...prev, [product._id]: true }));
     } catch (err) {
       toast.error("Failed to add product to cart");
     }
@@ -61,13 +46,18 @@ const WishlistPage = () => {
     navigate(`/cart`);
   };
 
-  useEffect(() => {
-    fetchWishlist();
-  }, [token]);
+  const handleRemoveFromWishlist = async (productId, productName) => {
+    try {
+      await dispatch(removeFromWishlist({ productId, token })).unwrap();
+      toast.success(`${productName} removed from wishlist!`);
+    } catch (err) {
+      toast.error("Failed to remove from wishlist");
+    }
+  };
 
-  // Product Card Component (matching Products page style with Flipkart/Myntra-like wishlist)
+  // Wishlist Product Card Component
   const WishlistProductCard = ({ product }) => {
-    const [addedToCart, setAddedToCart] = useState(false);
+    const [addedToCart, setAddedToCart] = useState(addedToCartMap[product._id] || false);
     const image = product.images?.[0] || "https://via.placeholder.com/300";
 
     const handleCardAddToCart = async (e) => {
@@ -81,9 +71,9 @@ const WishlistPage = () => {
       handleBuyNow(product);
     };
 
-    const handleRemoveFromWishlist = (e) => {
+    const handleRemove = (e) => {
       e.stopPropagation();
-      removeFromWishlist(product._id, product.name);
+      handleRemoveFromWishlist(product._id, product.name);
     };
 
     return (
@@ -91,23 +81,20 @@ const WishlistPage = () => {
         onClick={() => navigate(`/products/${product._id}`)}
         className="bg-white rounded-md shadow-sm hover:shadow-md cursor-pointer overflow-hidden transition relative group"
       >
-        {/* Wishlist Icon - Red/Pink when in wishlist (like Flipkart/Myntra) */}
+        {/* Remove from Wishlist Icon */}
         <button
-          onClick={handleRemoveFromWishlist}
-          className="absolute top-2 right-2 z-10 text-red-500 hover:text-red-600 transition-all duration-200 transform hover:scale-110"
-          title="Remove from wishlist"
+          onClick={handleRemove}
+          className="absolute top-2 right-2 z-10 text-red-500 hover:text-red-700 transition-all duration-200 transform hover:scale-110"
         >
-          <AiFillHeart size={22} className="filter drop-shadow-sm" />
+          <AiOutlineHeart size={24} className="filter drop-shadow-sm" />
         </button>
 
         {/* Product Image */}
-        <div className="relative overflow-hidden">
-          <img 
-            src={image} 
-            alt={product.name} 
-            className="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-300" 
-          />
-        </div>
+        <img 
+          src={image} 
+          alt={product.name} 
+          className="w-full h-64 object-cover" 
+        />
         
         {/* Product Details */}
         <div className="p-3">
@@ -169,6 +156,8 @@ const WishlistPage = () => {
     );
   };
 
+  if (loading) return <p className="text-center mt-20">Loading wishlist...</p>;
+
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-6xl mx-auto px-4">
@@ -197,9 +186,7 @@ const WishlistPage = () => {
         {wishlist.length === 0 ? (
           <div className="text-center py-20 text-gray-600 bg-white rounded-lg shadow-sm">
             <div className="max-w-md mx-auto">
-              <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-red-50 flex items-center justify-center">
-                <AiOutlineHeart size={32} className="text-red-400" />
-              </div>
+              <AiOutlineHeart className="mx-auto text-gray-400 text-6xl mb-4" />
               <h3 className="text-xl font-semibold mb-2 text-gray-800">Your wishlist is empty</h3>
               <p className="text-gray-500 mb-6">
                 Save your favorite items here to keep track of them and buy later.

@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useContext } from "react";
 import { Link } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
-import { AiOutlineEdit, AiOutlineDelete, AiOutlineShopping, AiOutlineHeart, AiOutlineUser, AiOutlineHome, AiOutlineSetting } from "react-icons/ai";
+import { useDispatch, useSelector } from "react-redux";
+import { removeFromWishlist, fetchWishlist } from "../redux/wishlistSlice";
+import { AiOutlineEdit, AiOutlineDelete, AiOutlineShopping, AiOutlineHeart, AiOutlineUser, AiOutlineHome, AiOutlineSetting, AiOutlinePlus } from "react-icons/ai";
 
 const ProfilePage = () => {
   const { user } = useContext(AuthContext);
@@ -18,12 +20,29 @@ const ProfilePage = () => {
     joinedAt: "",
   });
   const [avatar, setAvatar] = useState(null);
-  const [wishlist, setWishlist] = useState([]);
   const [orders, setOrders] = useState([]);
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
+  
+  // Address form state
+  const [showAddressForm, setShowAddressForm] = useState(false);
+  const [editingAddressIndex, setEditingAddressIndex] = useState(null);
+  const [addressForm, setAddressForm] = useState({
+    line1: "",
+    line2: "",
+    city: "",
+    state: "",
+    pincode: "",
+    phone: "",
+    label: "home",
+    isDefault: false
+  });
 
   const BASE_URL = import.meta.env.VITE_API_URL;
+  const dispatch = useDispatch();
+
+  // Use Redux for wishlist instead of local state
+  const { items: wishlist } = useSelector((state) => state.wishlist);
 
   // Fetch profile
   const fetchProfile = async () => {
@@ -47,20 +66,6 @@ const ProfilePage = () => {
     }
   };
 
-  // Fetch wishlist
-  const fetchWishlist = async () => {
-    try {
-      const res = await fetch(`${BASE_URL}/users/wishlist`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const data = await res.json();
-      setWishlist(data.items || []);
-    } catch (err) {
-      console.error("Fetch wishlist error:", err);
-    }
-  };
-
   // Fetch orders
   const fetchOrders = async () => {
     try {
@@ -78,13 +83,21 @@ const ProfilePage = () => {
   useEffect(() => {
     if (token) {
       fetchProfile();
-      fetchWishlist();
+      dispatch(fetchWishlist(token)); // Use Redux to fetch wishlist
       fetchOrders();
     }
-  }, [token]);
+  }, [token, dispatch]);
 
   const handleChange = (e) => {
     setProfile({ ...profile, [e.target.name]: e.target.value });
+  };
+
+  const handleAddressFormChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    setAddressForm(prev => ({
+      ...prev,
+      [name]: type === 'checkbox' ? checked : value
+    }));
   };
 
   const handleAvatarChange = (e) => {
@@ -101,6 +114,10 @@ const ProfilePage = () => {
       formData.append("name", profile.name);
       formData.append("phone", profile.phone);
       formData.append("bio", profile.bio);
+      
+      // Add addresses as JSON string - this is what your backend expects
+      formData.append("addresses", JSON.stringify(profile.addresses));
+      
       if (avatar) formData.append("avatar", avatar);
 
       const res = await fetch(`${BASE_URL}/users/profile`, {
@@ -125,13 +142,75 @@ const ProfilePage = () => {
     }
   };
 
-  const removeFromWishlist = async (productId) => {
+  // Address management functions
+  const handleAddAddress = () => {
+    setEditingAddressIndex(null);
+    setAddressForm({
+      line1: "",
+      line2: "",
+      city: "",
+      state: "",
+      pincode: "",
+      phone: "",
+      label: "home",
+      isDefault: profile.addresses.length === 0 // Set as default if no addresses exist
+    });
+    setShowAddressForm(true);
+  };
+
+  const handleEditAddress = (index) => {
+    setEditingAddressIndex(index);
+    setAddressForm(profile.addresses[index]);
+    setShowAddressForm(true);
+  };
+
+  const handleSaveAddress = () => {
+    const newAddresses = [...profile.addresses];
+    
+    // If setting as default, remove default from all other addresses
+    if (addressForm.isDefault) {
+      newAddresses.forEach(addr => addr.isDefault = false);
+    }
+
+    if (editingAddressIndex !== null) {
+      // Update existing address
+      newAddresses[editingAddressIndex] = addressForm;
+    } else {
+      // Add new address
+      newAddresses.push(addressForm);
+    }
+
+    setProfile(prev => ({ ...prev, addresses: newAddresses }));
+    setShowAddressForm(false);
+    setEditingAddressIndex(null);
+    setAddressForm({
+      line1: "",
+      line2: "",
+      city: "",
+      state: "",
+      pincode: "",
+      phone: "",
+      label: "home",
+      isDefault: false
+    });
+  };
+
+  const handleRemoveAddress = (index) => {
+    const newAddresses = profile.addresses.filter((_, i) => i !== index);
+    setProfile(prev => ({ ...prev, addresses: newAddresses }));
+  };
+
+  const handleSetDefaultAddress = (index) => {
+    const newAddresses = profile.addresses.map((addr, i) => ({
+      ...addr,
+      isDefault: i === index
+    }));
+    setProfile(prev => ({ ...prev, addresses: newAddresses }));
+  };
+
+  const removeFromWishlistHandler = async (productId) => {
     try {
-      await fetch(`${BASE_URL}/users/wishlist/${productId}`, {
-        method: "DELETE",
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setWishlist(wishlist.filter((i) => i._id !== productId));
+      await dispatch(removeFromWishlist({ productId, token })).unwrap();
     } catch (err) {
       console.error("Remove from wishlist error:", err);
     }
@@ -246,7 +325,7 @@ const ProfilePage = () => {
             </div>
           )}
 
-          {/* Orders Tab - Updated to match MyOrders page */}
+          {/* Orders Tab */}
           {activeTab === "orders" && (
             <div>
               <h3 className="text-xl font-semibold text-gray-800 mb-6">My Orders</h3>
@@ -355,7 +434,7 @@ const ProfilePage = () => {
             </div>
           )}
 
-          {/* Wishlist Tab */}
+          {/* Wishlist Tab - UPDATED to use Redux */}
           {activeTab === "wishlist" && (
             <div>
               <h3 className="text-xl font-semibold text-gray-800 mb-6">My Wishlist</h3>
@@ -385,7 +464,7 @@ const ProfilePage = () => {
                           View Product
                         </Link>
                         <button
-                          onClick={() => removeFromWishlist(item._id)}
+                          onClick={() => removeFromWishlistHandler(item._id)}
                           className="px-4 py-2 border border-red-500 text-red-500 rounded-lg hover:bg-red-50 transition-colors duration-200"
                         >
                           <AiOutlineDelete />
@@ -413,24 +492,168 @@ const ProfilePage = () => {
           {/* Addresses Tab */}
           {activeTab === "addresses" && (
             <div>
-              <h3 className="text-xl font-semibold text-gray-800 mb-6">Saved Addresses</h3>
+              <div className="flex justify-between items-center mb-6">
+                <h3 className="text-xl font-semibold text-gray-800">Saved Addresses</h3>
+                <button
+                  onClick={handleAddAddress}
+                  className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors duration-200"
+                >
+                  <AiOutlinePlus />
+                  Add New Address
+                </button>
+              </div>
+
+              {showAddressForm && (
+                <div className="bg-gray-50 rounded-lg p-6 mb-6 border border-gray-200">
+                  <h4 className="font-semibold text-gray-800 mb-4">
+                    {editingAddressIndex !== null ? 'Edit Address' : 'Add New Address'}
+                  </h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Address Line 1 *</label>
+                      <input
+                        type="text"
+                        name="line1"
+                        value={addressForm.line1}
+                        onChange={handleAddressFormChange}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Address Line 2</label>
+                      <input
+                        type="text"
+                        name="line2"
+                        value={addressForm.line2}
+                        onChange={handleAddressFormChange}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">City *</label>
+                      <input
+                        type="text"
+                        name="city"
+                        value={addressForm.city}
+                        onChange={handleAddressFormChange}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">State *</label>
+                      <input
+                        type="text"
+                        name="state"
+                        value={addressForm.state}
+                        onChange={handleAddressFormChange}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Pincode *</label>
+                      <input
+                        type="text"
+                        name="pincode"
+                        value={addressForm.pincode}
+                        onChange={handleAddressFormChange}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Phone *</label>
+                      <input
+                        type="tel"
+                        name="phone"
+                        value={addressForm.phone}
+                        onChange={handleAddressFormChange}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Label</label>
+                      <select
+                        name="label"
+                        value={addressForm.label}
+                        onChange={handleAddressFormChange}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                      >
+                        <option value="home">Home</option>
+                        <option value="work">Work</option>
+                        <option value="other">Other</option>
+                      </select>
+                    </div>
+                    <div className="flex items-center mt-6">
+                      <input
+                        type="checkbox"
+                        name="isDefault"
+                        checked={addressForm.isDefault}
+                        onChange={handleAddressFormChange}
+                        className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+                      />
+                      <label className="ml-2 text-sm text-gray-700">Set as default address</label>
+                    </div>
+                  </div>
+                  <div className="flex gap-3">
+                    <button
+                      onClick={handleSaveAddress}
+                      className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors duration-200"
+                    >
+                      Save Address
+                    </button>
+                    <button
+                      onClick={() => setShowAddressForm(false)}
+                      className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors duration-200"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              )}
+
               {profile.addresses.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {profile.addresses.map((addr, idx) => (
-                    <div key={idx} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow duration-200">
+                    <div key={idx} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow duration-200 relative">
                       <div className="flex justify-between items-start mb-3">
                         <span className="font-semibold text-gray-800 capitalize">{addr.label}</span>
-                        {addr.isDefault && (
-                          <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full font-medium">
-                            Default
-                          </span>
-                        )}
+                        <div className="flex gap-2">
+                          {addr.isDefault && (
+                            <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full font-medium">
+                              Default
+                            </span>
+                          )}
+                          <button
+                            onClick={() => handleEditAddress(idx)}
+                            className="text-indigo-600 hover:text-indigo-800"
+                          >
+                            <AiOutlineEdit />
+                          </button>
+                          <button
+                            onClick={() => handleRemoveAddress(idx)}
+                            className="text-red-600 hover:text-red-800"
+                          >
+                            <AiOutlineDelete />
+                          </button>
+                        </div>
                       </div>
                       <p className="text-gray-600 text-sm">
                         {addr.line1}, {addr.line2 && `${addr.line2}, `}
                         {addr.city}, {addr.state} - {addr.pincode}
                       </p>
                       <p className="text-gray-600 text-sm mt-1">Phone: {addr.phone}</p>
+                      {!addr.isDefault && (
+                        <button
+                          onClick={() => handleSetDefaultAddress(idx)}
+                          className="mt-3 text-sm text-indigo-600 hover:text-indigo-800"
+                        >
+                          Set as Default
+                        </button>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -438,7 +661,7 @@ const ProfilePage = () => {
                 <div className="text-center py-12">
                   <AiOutlineHome className="mx-auto text-gray-400 text-4xl mb-4" />
                   <p className="text-gray-600">No saved addresses</p>
-                  <p className="text-gray-500 text-sm mt-1">Add an address during checkout</p>
+                  <p className="text-gray-500 text-sm mt-1">Add your first address above</p>
                 </div>
               )}
             </div>

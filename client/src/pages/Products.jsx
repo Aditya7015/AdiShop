@@ -2,9 +2,10 @@
 import React, { useEffect, useState, useContext } from "react";
 import axios from "axios";
 import { useNavigate, useParams } from "react-router-dom";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { AuthContext } from "../context/AuthContext";
 import { addToCart } from "../redux/cartSlice";
+import { addToWishlist, removeFromWishlist, fetchWishlist } from "../redux/wishlistSlice";
 import toast from "react-hot-toast";
 import { AiOutlineHeart, AiFillHeart } from "react-icons/ai";
 
@@ -14,7 +15,6 @@ const Products = () => {
   const { category } = useParams();
   const [products, setProducts] = useState([]);
   const [filteredProducts, setFilteredProducts] = useState([]);
-  const [wishlist, setWishlist] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -30,6 +30,9 @@ const Products = () => {
   const dispatch = useDispatch();
   const { user } = useContext(AuthContext);
   const token = user?.token;
+
+  // Use Redux for wishlist instead of local state
+  const { items: wishlistItems } = useSelector((state) => state.wishlist);
 
   const categoryMap = {
     mens: "Mens Wear",
@@ -64,21 +67,12 @@ const Products = () => {
     fetchProducts();
   }, []);
 
-  // Fetch user's wishlist
+  // Fetch user's wishlist using Redux
   useEffect(() => {
-    const fetchWishlist = async () => {
-      if (!user) return;
-      try {
-        const res = await axios.get(`${BASE_URL}/users/wishlist`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        setWishlist(res.data.items.map((item) => item._id));
-      } catch (err) {
-        console.error("Fetch wishlist error:", err);
-      }
-    };
-    fetchWishlist();
-  }, [user, token]);
+    if (user && token) {
+      dispatch(fetchWishlist(token));
+    }
+  }, [user, token, dispatch]);
 
   // Apply filters
   useEffect(() => {
@@ -122,127 +116,126 @@ const Products = () => {
   if (error) return <p className="text-center mt-20 text-red-500">{error}</p>;
 
   // --- Product Card ---
-  // --- Product Card ---
-const ProductCard = ({ product }) => {
-  const image = product.images?.[0] || "https://via.placeholder.com/300";
-  const [addedToCart, setAddedToCart] = useState(false);
-  const [wishlistAdded, setWishlistAdded] = useState(wishlist.includes(product._id));
+  const ProductCard = ({ product }) => {
+    const image = product.images?.[0] || "https://via.placeholder.com/300";
+    const [addedToCart, setAddedToCart] = useState(false);
+    
+    // Use Redux state to check if product is in wishlist
+    const isInWishlist = wishlistItems.some(item => item._id === product._id);
 
-  const handleAddToCart = async (e) => {
-    e.stopPropagation();
-    if (!user) return toast.error("Please login first!");
+    const handleAddToCart = async (e) => {
+      e.stopPropagation();
+      if (!user) return toast.error("Please login first!");
 
-    try {
-      await dispatch(
-        addToCart({
-          userId: user._id,
-          productId: product._id,
-          quantity: 1,
-        })
-      ).unwrap();
-      toast.success(`${product.name} added to cart!`);
-      setAddedToCart(true);
-    } catch (err) {
-      toast.error("Failed to add product to cart");
-    }
-  };
-
-  const handleBuyNow = (e) => {
-    e.stopPropagation();
-    navigate(`/cart`);
-  };
-
-  const handleWishlistToggle = async (e) => {
-    e.stopPropagation();
-    if (!user) return toast.error("Please login first!");
-    try {
-      const url = `${BASE_URL}/users/wishlist`;
-      if (!wishlistAdded) {
-        await axios.post(
-          url,
-          { productId: product._id },
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
-        toast.success("Added to wishlist!");
-        setWishlistAdded(true);
-        setWishlist([...wishlist, product._id]);
-      } else {
-        await axios.delete(`${url}/${product._id}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        toast.success("Removed from wishlist!");
-        setWishlistAdded(false);
-        setWishlist(wishlist.filter((id) => id !== product._id));
+      try {
+        await dispatch(
+          addToCart({
+            userId: user._id,
+            productId: product._id,
+            quantity: 1,
+          })
+        ).unwrap();
+        toast.success(`${product.name} added to cart!`);
+        setAddedToCart(true);
+      } catch (err) {
+        toast.error("Failed to add product to cart");
       }
-    } catch (err) {
-      console.error("Wishlist error:", err);
-      toast.error("Failed to update wishlist");
-    }
-  };
+    };
 
-  return (
-    <div
-      onClick={() => navigate(`/products/${product._id}`)}
-      className="bg-white rounded-md shadow-sm hover:shadow-md cursor-pointer overflow-hidden transition relative group"
-    >
-      {/* Wishlist Icon - Improved visibility */}
-      <button
-        onClick={handleWishlistToggle}
-        className={`absolute top-2 right-2 z-10 transition-all duration-200 transform hover:scale-110 ${
-          wishlistAdded 
-            ? "text-pink-500 hover:text-pink-600" 
-            : "text-gray-400 hover:text-gray-500"
-        }`}
+    const handleBuyNow = (e) => {
+      e.stopPropagation();
+      navigate(`/cart`);
+    };
+
+    const handleWishlistToggle = async (e) => {
+      e.stopPropagation();
+      if (!user) return toast.error("Please login first!");
+      
+      try {
+        if (!isInWishlist) {
+          // Use Redux action instead of direct API call
+          await dispatch(addToWishlist({ 
+            productId: product._id, 
+            token: token 
+          })).unwrap();
+          toast.success("Added to wishlist!");
+        } else {
+          // Use Redux action instead of direct API call
+          await dispatch(removeFromWishlist({ 
+            productId: product._id, 
+            token: token 
+          })).unwrap();
+          toast.success("Removed from wishlist!");
+        }
+      } catch (err) {
+        console.error("Wishlist error:", err);
+        toast.error("Failed to update wishlist");
+      }
+    };
+
+    return (
+      <div
+        onClick={() => navigate(`/products/${product._id}`)}
+        className="bg-white rounded-md shadow-sm hover:shadow-md cursor-pointer overflow-hidden transition relative group"
       >
-        {wishlistAdded ? (
-          <AiFillHeart size={24} className="filter drop-shadow-sm" />
-        ) : (
-          <AiOutlineHeart size={24} />
-        )}
-      </button>
-
-      <img src={image} alt={product.name} className="w-full h-64 object-cover" />
-      <div className="p-3">
-        <p className="text-sm text-gray-600">{product.brand || "Brand"}</p>
-        <h3 className="font-medium text-gray-800 truncate">{product.name}</h3>
-        <p className="text-gray-900 font-semibold">
-          ₹{product.price}{" "}
-          {product.originalPrice && (
-            <>
-              <span className="text-gray-400 line-through ml-1">
-                ₹{product.originalPrice}
-              </span>
-              <span className="text-green-600 text-sm ml-1">
-                ({Math.round(
-                  ((product.originalPrice - product.price) / product.originalPrice) *
-                    100
-                )}
-                % OFF)
-              </span>
-            </>
+        {/* Wishlist Icon - Improved visibility */}
+        <button
+          onClick={handleWishlistToggle}
+          className={`absolute top-2 right-2 z-10 transition-all duration-200 transform hover:scale-110 ${
+            isInWishlist 
+              ? "text-pink-500 hover:text-pink-600" 
+              : "text-gray-400 hover:text-gray-500"
+          }`}
+        >
+          {isInWishlist ? (
+            <AiFillHeart size={24} className="filter drop-shadow-sm" />
+          ) : (
+            <AiOutlineHeart size={24} />
           )}
-        </p>
-        {product.rating && <p className="text-yellow-500 text-sm">⭐ {product.rating}</p>}
+        </button>
 
-        {!addedToCart ? (
-          <button
-            onClick={handleAddToCart}
-            className="mt-2 w-full bg-slate-800 text-white py-1.5 rounded hover:bg-slate-700 transition"
-          >
-            Add to Cart
-          </button>
-        ) : (
-          <button
-            onClick={handleBuyNow}
-            className="mt-2 w-full bg-green-600 text-white py-1.5 rounded hover:bg-green-500 transition"
-          >
-            Buy Now
-          </button>
-        )}
+        <img src={image} alt={product.name} className="w-full h-64 object-cover" />
+        <div className="p-3">
+          <p className="text-sm text-gray-600">{product.brand || "Brand"}</p>
+          <h3 className="font-medium text-gray-800 truncate">{product.name}</h3>
+          <p className="text-gray-900 font-semibold">
+            ₹{product.price}{" "}
+            {product.originalPrice && (
+              <>
+                <span className="text-gray-400 line-through ml-1">
+                  ₹{product.originalPrice}
+                </span>
+                <span className="text-green-600 text-sm ml-1">
+                  ({Math.round(
+                    ((product.originalPrice - product.price) / product.originalPrice) *
+                      100
+                  )}
+                  % OFF)
+                </span>
+              </>
+            )}
+          </p>
+          {product.rating && <p className="text-yellow-500 text-sm">⭐ {product.rating}</p>}
+
+          {!addedToCart ? (
+            <button
+              onClick={handleAddToCart}
+              className="mt-2 w-full bg-slate-800 text-white py-1.5 rounded hover:bg-slate-700 transition"
+            >
+              Add to Cart
+            </button>
+          ) : (
+            <button
+              onClick={handleBuyNow}
+              className="mt-2 w-full bg-green-600 text-white py-1.5 rounded hover:bg-green-500 transition"
+            >
+              Buy Now
+            </button>
+          )}
+        </div>
       </div>
-    </div>
-  );
-};
+    );
+  };
 
   return (
     <div className="flex bg-gray-100 min-h-screen">

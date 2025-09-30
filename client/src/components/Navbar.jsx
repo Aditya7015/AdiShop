@@ -3,10 +3,10 @@ import { Link } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
 import { useSelector, useDispatch } from "react-redux";
 import { fetchCart } from "../redux/cartSlice";
+import { fetchWishlist } from "../redux/wishlistSlice";
 import logo from "../assets/logo/logo.png";
 import { FaHome, FaUserAlt, FaShoppingCart, FaBars } from "react-icons/fa";
 import { AiOutlineHeart } from "react-icons/ai";
-import axios from "axios";
 
 const Navbar = () => {
   const [openMenu, setOpenMenu] = useState(false);
@@ -14,36 +14,27 @@ const Navbar = () => {
   const menuRef = useRef(null);
 
   const dispatch = useDispatch();
-  const { items } = useSelector((state) => state.cart);
+  
+  // Get both cart and wishlist from Redux store
+  const { items: cartItems } = useSelector((state) => state.cart);
+  const { items: wishlistItems } = useSelector((state) => state.wishlist);
 
-  const [wishlistCount, setWishlistCount] = useState(0);
-  const token = user?.token;
-  const BASE_URL = import.meta.env.VITE_API_URL;
-
+  // Fetch cart and wishlist when user changes
   useEffect(() => {
-    if (user?._id) dispatch(fetchCart(user._id));
+    if (user?._id && user?.token) {
+      console.log("Fetching cart and wishlist for user:", user._id);
+      dispatch(fetchCart(user._id));
+      dispatch(fetchWishlist(user.token));
+    }
   }, [user, dispatch]);
 
-  // Fetch wishlist count
-  const fetchWishlist = async () => {
-    if (!user) return;
-    try {
-      const res = await axios.get(`${BASE_URL}/users/wishlist`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setWishlistCount(res.data.items?.length || 0);
-    } catch (err) {
-      console.error("Wishlist fetch error:", err);
-    }
-  };
-
-  useEffect(() => {
-    fetchWishlist();
-  }, [user, token]);
-
-  const cartCount = Array.isArray(items)
-    ? items.reduce((acc, item) => acc + item.quantity, 0)
+  const cartCount = Array.isArray(cartItems)
+    ? cartItems.reduce((acc, item) => acc + item.quantity, 0)
     : 0;
+
+  const wishlistCount = Array.isArray(wishlistItems) ? wishlistItems.length : 0;
+
+  console.log("Navbar - Wishlist count:", wishlistCount, "Items:", wishlistItems);
 
   // Toggle menu function
   const toggleMenu = () => {
@@ -63,7 +54,7 @@ const Navbar = () => {
 
   return (
     <nav className="relative">
-      {/* Desktop Navbar - Only spacing improved */}
+      {/* Desktop Navbar */}
       <div className="hidden md:flex items-center justify-between px-8 lg:px-20 py-4 border-b border-gray-300 bg-white">
         {/* Logo */}
         <Link to="/" className="flex-shrink-0">
@@ -74,7 +65,7 @@ const Navbar = () => {
           />
         </Link>
 
-        {/* Navigation Links - Better spacing */}
+        {/* Navigation Links */}
         <div className="flex items-center gap-8 lg:gap-10">
           <Link to="/" className="hover:text-indigo-600">Home</Link>
           <Link to="/products" className="hover:text-indigo-600">Products</Link>
@@ -86,15 +77,15 @@ const Navbar = () => {
           <Link to="/contact" className="hover:text-indigo-600">Contact</Link>
         </div>
 
-        {/* Right Side - Better spacing */}
+        {/* Right Side */}
         <div className="flex items-center gap-6">
           {/* Wishlist */}
           {user && (
             <Link to="/wishlist" className="relative">
               <AiOutlineHeart size={22} className="text-gray-700 hover:text-red-500" />
               {wishlistCount > 0 && (
-                <span className="absolute -top-2 -right-3 text-xs text-white bg-red-500 w-4 h-4 rounded-full flex items-center justify-center">
-                  {wishlistCount}
+                <span className="absolute -top-2 -right-3 text-xs text-white bg-red-500 w-5 h-5 rounded-full flex items-center justify-center font-medium">
+                  {wishlistCount > 9 ? "9+" : wishlistCount}
                 </span>
               )}
             </Link>
@@ -104,8 +95,8 @@ const Navbar = () => {
           <Link to="/cart" className="relative">
             <FaShoppingCart size={22} />
             {cartCount > 0 && (
-              <span className="absolute -top-2 -right-3 text-xs text-white bg-indigo-500 w-4 h-4 rounded-full flex items-center justify-center">
-                {cartCount}
+              <span className="absolute -top-2 -right-3 text-xs text-white bg-indigo-500 w-5 h-5 rounded-full flex items-center justify-center font-medium">
+                {cartCount > 9 ? "9+" : cartCount}
               </span>
             )}
           </Link>
@@ -140,7 +131,7 @@ const Navbar = () => {
         </div>
       </div>
 
-      {/* Mobile Bottom Navbar - Fixed badge positioning */}
+      {/* Mobile Bottom Navbar */}
       <div className="md:hidden fixed bottom-0 left-0 w-full bg-white border-t border-gray-300 z-50">
         <div className="flex justify-between items-center px-4 py-2">
           <Link to="/" className="flex flex-col items-center text-gray-700 hover:text-indigo-600">
@@ -160,7 +151,7 @@ const Navbar = () => {
             <Link to="/wishlist" className="relative flex flex-col items-center text-gray-700 hover:text-red-500">
               <AiOutlineHeart size={22} />
               {wishlistCount > 0 && (
-                <span className="absolute -top-1 right-1 text-xs text-white bg-red-500 w-4 h-4 rounded-full flex items-center justify-center">
+                <span className="absolute -top-1 right-1 text-xs text-white bg-red-500 w-4 h-4 rounded-full flex items-center justify-center font-medium">
                   {wishlistCount}
                 </span>
               )}
@@ -174,7 +165,7 @@ const Navbar = () => {
           >
             <FaShoppingCart size={22} />
             {cartCount > 0 && (
-              <span className="absolute -top-1 right-1 text-xs text-white bg-indigo-500 w-4 h-4 rounded-full flex items-center justify-center">
+              <span className="absolute -top-1 right-1 text-xs text-white bg-indigo-500 w-4 h-4 rounded-full flex items-center justify-center font-medium">
                 {cartCount}
               </span>
             )}

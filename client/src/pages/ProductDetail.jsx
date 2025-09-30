@@ -1,10 +1,12 @@
 import React, { useEffect, useState, useContext } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { addToCart } from "../redux/cartSlice";
+import { addToWishlist, removeFromWishlist, fetchWishlist } from "../redux/wishlistSlice";
 import { AuthContext } from "../context/AuthContext";
 import { toast } from "react-hot-toast";
+import { AiOutlineHeart, AiFillHeart } from "react-icons/ai";
 
 const BASE_URL = import.meta.env.VITE_API_URL;
 
@@ -18,6 +20,10 @@ const ProductDetail = () => {
   const { user } = useContext(AuthContext);
   const dispatch = useDispatch();
   const navigate = useNavigate();
+
+  // Use Redux for wishlist
+  const { items: wishlistItems } = useSelector((state) => state.wishlist);
+  const isInWishlist = wishlistItems.some(item => item._id === id);
 
   // Fetch current product
   useEffect(() => {
@@ -37,31 +43,34 @@ const ProductDetail = () => {
   }, [id]);
 
   // Fetch recommended products
-  // Fetch recommended products
-useEffect(() => {
-  const fetchRecommended = async () => {
-    try {
-      const res = await axios.get(`${BASE_URL}/products`);
-      // Remove current product
-      const others = res.data.filter((p) => p._id !== id);
+  useEffect(() => {
+    const fetchRecommended = async () => {
+      try {
+        const res = await axios.get(`${BASE_URL}/products`);
+        // Remove current product
+        const others = res.data.filter((p) => p._id !== id);
 
-      // Shuffle the array
-      for (let i = others.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [others[i], others[j]] = [others[j], others[i]];
+        // Shuffle the array
+        for (let i = others.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [others[i], others[j]] = [others[j], others[i]];
+        }
+
+        // Take first 4 random products
+        setRecommended(others.slice(0, 4));
+      } catch (err) {
+        console.error("Error fetching recommended products:", err);
       }
+    };
+    fetchRecommended();
+  }, [id]);
 
-      // Take first 4 random products
-      setRecommended(others.slice(0, 4));
-    } catch (err) {
-      console.error("Error fetching recommended products:", err);
+  // Fetch wishlist when user logs in
+  useEffect(() => {
+    if (user?.token) {
+      dispatch(fetchWishlist(user.token));
     }
-  };
-  fetchRecommended();
-}, [id]);
-
-
-  if (!product) return <p className="text-center mt-10">Loading product...</p>;
+  }, [user, dispatch]);
 
   const handleAddToCart = () => {
     if (!user?._id) {
@@ -90,6 +99,34 @@ useEffect(() => {
     navigate("/cart");
   };
 
+  const handleWishlistToggle = async () => {
+    if (!user) {
+      toast.error("Please login to manage your wishlist");
+      return;
+    }
+
+    try {
+      if (!isInWishlist) {
+        await dispatch(addToWishlist({ 
+          productId: product._id, 
+          token: user.token 
+        })).unwrap();
+        toast.success("Added to wishlist!");
+      } else {
+        await dispatch(removeFromWishlist({ 
+          productId: product._id, 
+          token: user.token 
+        })).unwrap();
+        toast.success("Removed from wishlist!");
+      }
+    } catch (err) {
+      console.error("Wishlist error:", err);
+      toast.error("Failed to update wishlist");
+    }
+  };
+
+  if (!product) return <p className="text-center mt-10">Loading product...</p>;
+
   return (
     <div className="max-w-7xl mx-auto px-4 md:px-8 mt-10 mb-32">
       {/* Product Info Section */}
@@ -112,12 +149,28 @@ useEffect(() => {
           </div>
 
           {/* Main Image */}
-          <div className="flex-1 border border-gray-300 rounded overflow-hidden flex items-center justify-center">
+          <div className="flex-1 border border-gray-300 rounded overflow-hidden flex items-center justify-center relative">
             <img
               src={thumbnail}
               alt="Selected product"
               className="max-w-full max-h-[450px] object-contain"
             />
+            
+            {/* Wishlist Button */}
+            <button
+              onClick={handleWishlistToggle}
+              className={`absolute top-4 right-4 p-2 rounded-full transition-all duration-200 transform hover:scale-110 ${
+                isInWishlist 
+                  ? "text-pink-500 bg-white shadow-lg" 
+                  : "text-gray-400 bg-white shadow-md hover:text-pink-500"
+              }`}
+            >
+              {isInWishlist ? (
+                <AiFillHeart size={24} />
+              ) : (
+                <AiOutlineHeart size={24} />
+              )}
+            </button>
           </div>
         </div>
 
@@ -131,15 +184,20 @@ useEffect(() => {
             </div>
 
             <div className="mt-4 flex items-center gap-4">
-              <p className="text-gray-500 line-through">MRP: ${product.price}</p>
+              <p className="text-gray-500 line-through">MRP: ₹{product.price}</p>
               <p className="text-2xl font-bold text-indigo-600">
-                Offer: ${product.offerPrice}
+                Offer: ₹{product.offerPrice || product.price}
               </p>
+              {product.offerPrice && product.price > product.offerPrice && (
+                <span className="text-green-600 text-sm font-medium">
+                  ({Math.round(((product.price - product.offerPrice) / product.price) * 100)}% OFF)
+                </span>
+              )}
             </div>
             <span className="text-gray-400 text-sm">(inclusive of all taxes)</span>
 
             {/* Color & Size */}
-            {product.colors && (
+            {product.colors && product.colors.length > 0 && (
               <div className="mt-6">
                 <h2 className="text-md font-medium mb-2">Colors:</h2>
                 <div className="flex gap-2">
@@ -147,19 +205,20 @@ useEffect(() => {
                     <div
                       key={color}
                       onClick={() => setSelectedColor(color)}
-                      className={`w-6 h-6 rounded-full cursor-pointer border-2 ${
+                      className={`w-8 h-8 rounded-full cursor-pointer border-2 ${
                         selectedColor === color
                           ? "border-indigo-500"
                           : "border-gray-300"
                       }`}
                       style={{ backgroundColor: color }}
+                      title={color}
                     ></div>
                   ))}
                 </div>
               </div>
             )}
 
-            {product.sizes && (
+            {product.sizes && product.sizes.length > 0 && (
               <div className="mt-4">
                 <h2 className="text-md font-medium mb-2">Sizes:</h2>
                 <div className="flex gap-2">
@@ -167,10 +226,10 @@ useEffect(() => {
                     <button
                       key={size}
                       onClick={() => setSelectedSize(size)}
-                      className={`px-3 py-1 border rounded ${
+                      className={`px-4 py-2 border rounded text-sm font-medium ${
                         selectedSize === size
-                          ? "border-indigo-500 text-indigo-600"
-                          : "border-gray-300"
+                          ? "border-indigo-500 bg-indigo-50 text-indigo-600"
+                          : "border-gray-300 text-gray-700 hover:border-gray-400"
                       }`}
                     >
                       {size}
@@ -215,75 +274,147 @@ useEffect(() => {
           <h2 className="text-xl font-semibold mb-4">You May Also Like</h2>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6">
             {recommended.map((rec) => (
-              <div
-                key={rec._id}
-                className="bg-white rounded-md shadow hover:shadow-lg transition overflow-hidden flex flex-col"
-              >
-                {/* Product Image */}
-                <div
-                  onClick={() => navigate(`/products/${rec._id}`)}
-                  className="cursor-pointer flex-1 flex items-center justify-center p-4"
-                >
-                  <img
-                    src={rec.images?.[0] || "https://via.placeholder.com/300"}
-                    alt={rec.name}
-                    className="object-contain h-40 w-full"
-                  />
-                </div>
-
-                {/* Product Info */}
-                <div className="p-3 flex flex-col gap-1">
-                  <p className="text-sm text-gray-500">{rec.brand || "Brand"}</p>
-                  <h3
-                    className="font-medium text-gray-800 truncate"
-                    title={rec.name}
-                  >
-                    {rec.name}
-                  </h3>
-                  <p className="text-gray-900 font-semibold">₹{rec.price}</p>
-                </div>
-
-                {/* Buttons */}
-                <div className="px-3 pb-3 flex gap-2">
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      if (!user?._id) return toast.error("Please login first!");
-                      dispatch(
-                        addToCart({
-                          userId: user._id,
-                          productId: rec._id,
-                          quantity: 1,
-                        })
-                      );
-                      toast.success(`${rec.name} added to cart!`);
-                    }}
-                    className="flex-1 py-2 bg-gray-100 text-gray-800 hover:bg-gray-200 rounded transition text-sm"
-                  >
-                    Add to Cart
-                  </button>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      dispatch(
-                        addToCart({
-                          userId: user._id,
-                          productId: rec._id,
-                          quantity: 1,
-                        })
-                      );
-                      navigate("/cart");
-                    }}
-                    className="flex-1 py-2 bg-indigo-600 text-white hover:bg-indigo-700 rounded transition text-sm"
-                  >
-                    Buy Now
-                  </button>
-                </div>
-              </div>
+              <RecommendedProductCard 
+                key={rec._id} 
+                product={rec} 
+                user={user}
+                navigate={navigate}
+                dispatch={dispatch}
+                wishlistItems={wishlistItems}
+              />
             ))}
           </div>
         </div>
       )}
+    </div>
+  );
+};
+
+// Separate component for recommended product card with wishlist functionality
+const RecommendedProductCard = ({ product, user, navigate, dispatch, wishlistItems }) => {
+  const isInWishlist = wishlistItems.some(item => item._id === product._id);
+
+  const handleAddToCart = (e) => {
+    e.stopPropagation();
+    if (!user?._id) {
+      toast.error("Please login first!");
+      return;
+    }
+    dispatch(
+      addToCart({
+        userId: user._id,
+        productId: product._id,
+        quantity: 1,
+      })
+    );
+    toast.success(`${product.name} added to cart!`);
+  };
+
+  const handleBuyNow = (e) => {
+    e.stopPropagation();
+    if (!user?._id) {
+      toast.error("Please login first!");
+      return;
+    }
+    dispatch(
+      addToCart({
+        userId: user._id,
+        productId: product._id,
+        quantity: 1,
+      })
+    );
+    navigate("/cart");
+  };
+
+  const handleWishlistToggle = async (e) => {
+    e.stopPropagation();
+    if (!user) {
+      toast.error("Please login to manage your wishlist");
+      return;
+    }
+
+    try {
+      if (!isInWishlist) {
+        await dispatch(addToWishlist({ 
+          productId: product._id, 
+          token: user.token 
+        })).unwrap();
+        toast.success("Added to wishlist!");
+      } else {
+        await dispatch(removeFromWishlist({ 
+          productId: product._id, 
+          token: user.token 
+        })).unwrap();
+        toast.success("Removed from wishlist!");
+      }
+    } catch (err) {
+      console.error("Wishlist error:", err);
+      toast.error("Failed to update wishlist");
+    }
+  };
+
+  return (
+    <div className="bg-white rounded-md shadow hover:shadow-lg transition overflow-hidden flex flex-col relative">
+      {/* Wishlist Button */}
+      <button
+        onClick={handleWishlistToggle}
+        className={`absolute top-2 right-2 z-10 p-1.5 rounded-full transition-all duration-200 transform hover:scale-110 ${
+          isInWishlist 
+            ? "text-pink-500 bg-white shadow-md" 
+            : "text-gray-400 bg-white shadow-sm hover:text-pink-500"
+        }`}
+      >
+        {isInWishlist ? (
+          <AiFillHeart size={20} />
+        ) : (
+          <AiOutlineHeart size={20} />
+        )}
+      </button>
+
+      {/* Product Image */}
+      <div
+        onClick={() => navigate(`/products/${product._id}`)}
+        className="cursor-pointer flex-1 flex items-center justify-center p-4"
+      >
+        <img
+          src={product.images?.[0] || "https://via.placeholder.com/300"}
+          alt={product.name}
+          className="object-contain h-40 w-full"
+        />
+      </div>
+
+      {/* Product Info */}
+      <div className="p-3 flex flex-col gap-1">
+        <p className="text-sm text-gray-500">{product.brand || "Brand"}</p>
+        <h3
+          className="font-medium text-gray-800 line-clamp-2 h-10 leading-5"
+          title={product.name}
+        >
+          {product.name}
+        </h3>
+        <div className="flex items-center gap-2">
+          <p className="text-gray-900 font-semibold">₹{product.offerPrice || product.price}</p>
+          {product.offerPrice && product.price > product.offerPrice && (
+            <p className="text-gray-500 line-through text-sm">₹{product.price}</p>
+          )}
+        </div>
+      </div>
+
+      {/* Buttons */}
+      <div className="px-3 pb-3 flex gap-2">
+        <button
+          onClick={handleAddToCart}
+          className="flex-1 py-2 bg-gray-100 text-gray-800 hover:bg-gray-200 rounded transition text-sm"
+        >
+          Add to Cart
+        </button>
+        <button
+          onClick={handleBuyNow}
+          className="flex-1 py-2 bg-indigo-600 text-white hover:bg-indigo-700 rounded transition text-sm"
+        >
+          Buy Now
+        </button>
+      </div>
     </div>
   );
 };
