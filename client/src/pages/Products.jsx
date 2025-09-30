@@ -6,6 +6,7 @@ import { useDispatch } from "react-redux";
 import { AuthContext } from "../context/AuthContext";
 import { addToCart } from "../redux/cartSlice";
 import toast from "react-hot-toast";
+import { AiOutlineHeart, AiFillHeart } from "react-icons/ai";
 
 const BASE_URL = import.meta.env.VITE_API_URL;
 
@@ -13,6 +14,7 @@ const Products = () => {
   const { category } = useParams();
   const [products, setProducts] = useState([]);
   const [filteredProducts, setFilteredProducts] = useState([]);
+  const [wishlist, setWishlist] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -27,6 +29,7 @@ const Products = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { user } = useContext(AuthContext);
+  const token = user?.token;
 
   const categoryMap = {
     mens: "Mens Wear",
@@ -35,6 +38,7 @@ const Products = () => {
     beauty: "Beauty Products",
   };
 
+  // Apply URL category
   useEffect(() => {
     if (category && categoryMap[category]) {
       setFilters((prev) => ({ ...prev, category: categoryMap[category] }));
@@ -60,92 +64,69 @@ const Products = () => {
     fetchProducts();
   }, []);
 
+  // Fetch user's wishlist
+  useEffect(() => {
+    const fetchWishlist = async () => {
+      if (!user) return;
+      try {
+        const res = await axios.get(`${BASE_URL}/users/wishlist`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setWishlist(res.data.items.map((item) => item._id));
+      } catch (err) {
+        console.error("Fetch wishlist error:", err);
+      }
+    };
+    fetchWishlist();
+  }, [user, token]);
+
   // Apply filters
-useEffect(() => {
-  let result = [...products];
+  useEffect(() => {
+    let result = [...products];
 
-  // CATEGORY FILTER
-  if (filters.category && filters.category !== "All") {
-    result = result.filter(
-      (p) => (p.category || "").toLowerCase() === filters.category.toLowerCase()
-    );
-  }
+    // Category
+    if (filters.category && filters.category !== "All") {
+      result = result.filter(
+        (p) => (p.category || "").toLowerCase() === filters.category.toLowerCase()
+      );
+    }
 
-  // PRICE FILTER
-  result = result.filter((p) => {
-    const price = Number(p.price || 0);
-    const min = Number(filters.minPrice || 0);
-    const max = Number(filters.maxPrice || 1000000);
-    return price >= min && price <= max;
-  });
+    // Price
+    result = result.filter((p) => {
+      const price = Number(p.price || 0);
+      const min = Number(filters.minPrice || 0);
+      const max = Number(filters.maxPrice || 1000000);
+      return price >= min && price <= max;
+    });
 
-  // --- IN STOCK FILTER ---
-  // Always remove out-of-stock products
-  result = result.filter((p) => p.inStock === true);
+    // In Stock
+    if (filters.inStock) {
+      result = result.filter((p) => p.inStock === true);
+    }
 
-  // SORTING
-  if (filters.sortBy === "lowToHigh") {
-    result.sort((a, b) => Number(a.price || 0) - Number(b.price || 0));
-  } else if (filters.sortBy === "highToLow") {
-    result.sort((a, b) => Number(b.price || 0) - Number(a.price || 0));
-  } else if (filters.sortBy === "newest") {
-    result.sort(
-      (a, b) => new Date(b.createdAt || Date.now()) - new Date(a.createdAt || Date.now())
-    );
-  }
+    // Sorting
+    if (filters.sortBy === "lowToHigh") {
+      result.sort((a, b) => Number(a.price || 0) - Number(b.price || 0));
+    } else if (filters.sortBy === "highToLow") {
+      result.sort((a, b) => Number(b.price || 0) - Number(a.price || 0));
+    } else if (filters.sortBy === "newest") {
+      result.sort(
+        (a, b) => new Date(b.createdAt || Date.now()) - new Date(a.createdAt || Date.now())
+      );
+    }
 
-  setFilteredProducts(result);
-}, [filters, products]);
-
-
-// useEffect(() => {
-//   // Start with all products
-//   let result = [...products];
-
-//   // --- CATEGORY FILTER ---
-//   if (filters.category && filters.category !== "All") {
-//     result = result.filter(
-//       (p) => (p.category || "").toLowerCase() === filters.category.toLowerCase()
-//     );
-//   }
-
-//   // --- PRICE FILTER ---
-//   result = result.filter((p) => {
-//     const price = Number(p.price || 0); // convert string to number, default 0
-//     const min = Number(filters.minPrice || 0);
-//     const max = Number(filters.maxPrice || 1000000); // some high default
-//     return price >= min && price <= max;
-//   });
-
-//   // --- IN STOCK FILTER ---
-//   if (filters.inStock) {
-//     result = result.filter((p) => p.inStock === true);
-//   }
-
-//   // --- SORTING ---
-//   if (filters.sortBy === "lowToHigh") {
-//     result.sort((a, b) => Number(a.price || 0) - Number(b.price || 0));
-//   } else if (filters.sortBy === "highToLow") {
-//     result.sort((a, b) => Number(b.price || 0) - Number(a.price || 0));
-//   } else if (filters.sortBy === "newest") {
-//     result.sort(
-//       (a, b) =>
-//         new Date(b.createdAt || Date.now()) - new Date(a.createdAt || Date.now())
-//     );
-//   }
-
-//   // Set filtered products
-//   setFilteredProducts(result);
-// }, [filters, products]);
-
-
+    setFilteredProducts(result);
+  }, [filters, products]);
 
   if (loading) return <p className="text-center mt-20">Loading products...</p>;
   if (error) return <p className="text-center mt-20 text-red-500">{error}</p>;
 
-  const ProductCard = ({ product }) => {
+  // --- Product Card ---
+  // --- Product Card ---
+const ProductCard = ({ product }) => {
   const image = product.images?.[0] || "https://via.placeholder.com/300";
   const [addedToCart, setAddedToCart] = useState(false);
+  const [wishlistAdded, setWishlistAdded] = useState(wishlist.includes(product._id));
 
   const handleAddToCart = async (e) => {
     e.stopPropagation();
@@ -159,9 +140,8 @@ useEffect(() => {
           quantity: 1,
         })
       ).unwrap();
-
       toast.success(`${product.name} added to cart!`);
-      setAddedToCart(true); // Switch button to Buy Now
+      setAddedToCart(true);
     } catch (err) {
       toast.error("Failed to add product to cart");
     }
@@ -169,20 +149,59 @@ useEffect(() => {
 
   const handleBuyNow = (e) => {
     e.stopPropagation();
-    // Navigate to checkout or cart page
     navigate(`/cart`);
+  };
+
+  const handleWishlistToggle = async (e) => {
+    e.stopPropagation();
+    if (!user) return toast.error("Please login first!");
+    try {
+      const url = `${BASE_URL}/users/wishlist`;
+      if (!wishlistAdded) {
+        await axios.post(
+          url,
+          { productId: product._id },
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        toast.success("Added to wishlist!");
+        setWishlistAdded(true);
+        setWishlist([...wishlist, product._id]);
+      } else {
+        await axios.delete(`${url}/${product._id}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        toast.success("Removed from wishlist!");
+        setWishlistAdded(false);
+        setWishlist(wishlist.filter((id) => id !== product._id));
+      }
+    } catch (err) {
+      console.error("Wishlist error:", err);
+      toast.error("Failed to update wishlist");
+    }
   };
 
   return (
     <div
       onClick={() => navigate(`/products/${product._id}`)}
-      className="bg-white rounded-md shadow-sm hover:shadow-md cursor-pointer overflow-hidden transition"
+      className="bg-white rounded-md shadow-sm hover:shadow-md cursor-pointer overflow-hidden transition relative group"
     >
-      <img
-        src={image}
-        alt={product.name}
-        className="w-full h-64 object-cover"
-      />
+      {/* Wishlist Icon - Improved visibility */}
+      <button
+        onClick={handleWishlistToggle}
+        className={`absolute top-2 right-2 z-10 transition-all duration-200 transform hover:scale-110 ${
+          wishlistAdded 
+            ? "text-pink-500 hover:text-pink-600" 
+            : "text-gray-400 hover:text-gray-500"
+        }`}
+      >
+        {wishlistAdded ? (
+          <AiFillHeart size={24} className="filter drop-shadow-sm" />
+        ) : (
+          <AiOutlineHeart size={24} />
+        )}
+      </button>
+
+      <img src={image} alt={product.name} className="w-full h-64 object-cover" />
       <div className="p-3">
         <p className="text-sm text-gray-600">{product.brand || "Brand"}</p>
         <h3 className="font-medium text-gray-800 truncate">{product.name}</h3>
@@ -195,8 +214,7 @@ useEffect(() => {
               </span>
               <span className="text-green-600 text-sm ml-1">
                 ({Math.round(
-                  ((product.originalPrice - product.price) /
-                    product.originalPrice) *
+                  ((product.originalPrice - product.price) / product.originalPrice) *
                     100
                 )}
                 % OFF)
@@ -206,7 +224,6 @@ useEffect(() => {
         </p>
         {product.rating && <p className="text-yellow-500 text-sm">⭐ {product.rating}</p>}
 
-        {/* Conditional Button */}
         {!addedToCart ? (
           <button
             onClick={handleAddToCart}
@@ -226,7 +243,6 @@ useEffect(() => {
     </div>
   );
 };
-
 
   return (
     <div className="flex bg-gray-100 min-h-screen">
@@ -261,10 +277,7 @@ useEffect(() => {
             className="border p-1 w-20 rounded mr-2"
             value={filters.minPrice}
             onChange={(e) =>
-              setFilters((prev) => ({
-                ...prev,
-                minPrice: Number(e.target.value),
-              }))
+              setFilters((prev) => ({ ...prev, minPrice: Number(e.target.value) }))
             }
           />
           -
@@ -273,10 +286,7 @@ useEffect(() => {
             className="border p-1 w-20 rounded ml-2"
             value={filters.maxPrice}
             onChange={(e) =>
-              setFilters((prev) => ({
-                ...prev,
-                maxPrice: Number(e.target.value),
-              }))
+              setFilters((prev) => ({ ...prev, maxPrice: Number(e.target.value) }))
             }
           />
         </div>
@@ -288,10 +298,7 @@ useEffect(() => {
               type="checkbox"
               checked={filters.inStock}
               onChange={(e) =>
-                setFilters((prev) => ({
-                  ...prev,
-                  inStock: e.target.checked,
-                }))
+                setFilters((prev) => ({ ...prev, inStock: e.target.checked }))
               }
             />
             In Stock Only
@@ -319,7 +326,6 @@ useEffect(() => {
           </select>
         </div>
 
-        {/* Products Grid */}
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
           {filteredProducts.map((product) => (
             <ProductCard key={product._id} product={product} />

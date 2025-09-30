@@ -1,9 +1,30 @@
-    import express from "express";
-    import { registerUser, loginUser } from "../controllers/userControllers.js";
+// server/routes/userRoutes.js
+import express from "express";
+import upload from "../middlewares/upload.js"; // multer memoryStorage
+import {
+  registerUser,
+  loginUser,
+  getUserProfile,
+  updateUserProfile,
+  getWishlist,
+  addToWishlist,
+  removeFromWishlist,
+} from "../controllers/userControllers.js";
 
-    const userRoutes = express.Router();
+import { protect } from "../middlewares/authMiddleware.js";
 
-    userRoutes.post("/register", registerUser);
-    userRoutes.post("/login", loginUser);
+const userRoutes = express.Router();
 
-    export default userRoutes;
+userRoutes.post("/register", registerUser);
+userRoutes.post("/login", loginUser);
+
+// Profile
+userRoutes.get("/profile", protect, getUserProfile);
+userRoutes.put("/profile", protect, upload.single("avatar"), updateUserProfile);
+
+// Wishlist
+userRoutes.get("/wishlist", protect, getWishlist);
+userRoutes.post("/wishlist", protect, addToWishlist); // body: { productId }
+userRoutes.delete("/wishlist/:productId", protect, removeFromWishlist);
+
+export default userRoutes;
