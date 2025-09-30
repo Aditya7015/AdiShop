@@ -1,179 +1,169 @@
-import React, { useState, useContext, useEffect } from "react";
+import React, { useState, useContext, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
-import logo from '../assets/logo/logo.png';
 import { AuthContext } from "../context/AuthContext";
 import { useSelector, useDispatch } from "react-redux";
 import { fetchCart } from "../redux/cartSlice";
+import logo from "../assets/logo/logo.png";
+import { FaHome, FaUserAlt, FaShoppingCart, FaBars } from "react-icons/fa";
 
 const Navbar = () => {
-  const [open, setOpen] = useState(false);
+  const [openMenu, setOpenMenu] = useState(false);
   const { user, logout } = useContext(AuthContext);
+  const menuRef = useRef(null);
 
   const dispatch = useDispatch();
   const { items } = useSelector((state) => state.cart);
 
-  // Fetch cart when user logs in
   useEffect(() => {
-    if (user?._id) {
-      dispatch(fetchCart(user._id));
-    }
+    if (user?._id) dispatch(fetchCart(user._id));
   }, [user, dispatch]);
 
-  const cartCount = Array.isArray(items) ? items.reduce((acc, item) => acc + item.quantity, 0) : 0;
+  const cartCount = Array.isArray(items)
+    ? items.reduce((acc, item) => acc + item.quantity, 0)
+    : 0;
+
+  // Close menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (openMenu && menuRef.current && !menuRef.current.contains(event.target)) {
+        setOpenMenu(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [openMenu]);
 
   return (
-    <nav className="flex items-center justify-between px-6 md:px-16 lg:px-24 xl:px-32 py-4 border-b border-gray-300 bg-white relative transition-all">
-
-      {/* Logo */}
-      <Link to="/">
-        <img src={logo} alt="Website Logo" className="h-10 w-auto" />
-      </Link>
-
-      {/* Desktop Menu */}
-      <div className="hidden sm:flex items-center gap-4 md:gap-8">
-        <Link to="/">Home</Link>
-        <Link to="/products">Products</Link>
-
-        {/* Categories */}
-        {/* Categories (Desktop) */}
-        <Link to="/shop/mens">Men</Link>
-        <Link to="/shop/womens">Women</Link>
-        <Link to="/shop/kids">Kids</Link>
-        <Link to="/shop/beauty">Accessories</Link>
-
-
-        <Link to="/about">About</Link>
-        <Link to="/contact">Contact</Link>
-
-        {/* Cart */}
-        <Link to="/cart" className="relative cursor-pointer">
-          <svg width="18" height="18" viewBox="0 0 14 14" fill="none">
-            <path
-              d="M.583.583h2.333l1.564 7.81a1.17 1.17 0 0 0 1.166.94h5.67a1.17 1.17 0 0 0 1.167-.94l.933-4.893H3.5"
-              stroke="#615fff"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-          {cartCount > 0 && (
-            <span className="absolute -top-2 -right-3 text-xs text-white bg-indigo-500 w-[18px] h-[18px] rounded-full flex items-center justify-center">
-              {cartCount}
-            </span>
-          )}
+    <nav className="relative">
+      {/* Desktop Navbar */}
+      <div className="hidden md:flex items-center justify-between px-6 md:px-16 lg:px-24 xl:px-32 py-4 border-b border-gray-300 bg-white">
+        <Link to="/">
+          <img src={logo} alt="Website Logo" className="h-10 w-auto" />
         </Link>
 
-        {/* Auth Buttons */}
-        {user ? (
-          <div className="flex items-center gap-3">
-            {user.role === 'admin' && (
-              <Link
-                to="/admin"
-                className="px-4 py-2 bg-yellow-500 text-white rounded-full hover:opacity-90 transition text-sm"
-              >
-                Admin Dashboard
-              </Link>
+        <div className="flex items-center gap-6">
+          <Link to="/" className="hover:text-indigo-600">Home</Link>
+          <Link to="/products" className="hover:text-indigo-600">Products</Link>
+          <Link to="/shop/mens" className="hover:text-indigo-600">Men</Link>
+          <Link to="/shop/womens" className="hover:text-indigo-600">Women</Link>
+          <Link to="/shop/kids" className="hover:text-indigo-600">Kids</Link>
+          <Link to="/shop/beauty" className="hover:text-indigo-600">Accessories</Link>
+          <Link to="/about" className="hover:text-indigo-600">About</Link>
+          <Link to="/contact" className="hover:text-indigo-600">Contact</Link>
+        </div>
+
+        <div className="flex items-center gap-4">
+          <Link to="/cart" className="relative">
+            <FaShoppingCart size={22} />
+            {cartCount > 0 && (
+              <span className="absolute -top-2 -right-3 text-xs text-white bg-indigo-500 w-4 h-4 rounded-full flex items-center justify-center">
+                {cartCount}
+              </span>
             )}
+          </Link>
 
-            <Link
-              to="/myorders"
-              className="px-4 py-2 bg-indigo-500 text-white rounded-full hover:opacity-90 transition text-sm"
-            >
-              My Orders
-            </Link>
-
-            <button
-              onClick={logout}
-              className="px-4 py-2 bg-red-500 text-white rounded-full hover:opacity-90 transition text-sm"
-            >
-              Logout
-            </button>
-          </div>
-        ) : (
-          <div className="flex items-center gap-3">
-            <Link
-              to="/login"
-              className="px-6 py-2 bg-indigo-500 text-white rounded-full hover:opacity-90 transition text-sm"
-            >
-              Login
-            </Link>
-            <Link
-              to="/signup"
-              className="px-6 py-2 bg-green-500 text-white rounded-full hover:opacity-90 transition text-sm"
-            >
-              Signup
-            </Link>
-          </div>
-        )}
+          {user ? (
+            <div className="flex items-center gap-2">
+              {user.role === "admin" && (
+                <Link to="/admin" className="px-4 py-2 bg-yellow-500 text-white rounded-full text-sm hover:opacity-90">
+                  Admin
+                </Link>
+              )}
+              <Link to="/myorders" className="px-4 py-2 bg-indigo-500 text-white rounded-full text-sm hover:opacity-90">
+                My Orders
+              </Link>
+              <button
+                onClick={logout}
+                className="px-4 py-2 bg-red-500 text-white rounded-full text-sm hover:opacity-90"
+              >
+                Logout
+              </button>
+            </div>
+          ) : (
+            <div className="flex items-center gap-2">
+              <Link to="/login" className="px-4 py-2 bg-indigo-500 text-white rounded-full text-sm hover:opacity-90">
+                Login
+              </Link>
+              <Link to="/signup" className="px-4 py-2 bg-green-500 text-white rounded-full text-sm hover:opacity-90">
+                Signup
+              </Link>
+            </div>
+          )}
+        </div>
       </div>
 
-      {/* Mobile Menu Button */}
-      <button onClick={() => setOpen(!open)} aria-label="Menu" className="sm:hidden">
-        <svg width="21" height="15" viewBox="0 0 21 15" fill="none">
-          <rect width="21" height="1.5" rx=".75" fill="#426287" />
-          <rect x="8" y="6" width="13" height="1.5" rx=".75" fill="#426287" />
-          <rect x="6" y="13" width="15" height="1.5" rx=".75" fill="#426287" />
-        </svg>
-      </button>
+      {/* Mobile Bottom Navbar */}
+      <div className="md:hidden fixed bottom-0 left-0 w-full bg-white border-t border-gray-300 z-50">
+        <div className="flex justify-between items-center px-4 py-2">
+          <Link to="/" className="flex flex-col items-center text-gray-700 hover:text-indigo-600">
+            <FaHome size={22} />
+            <span className="text-xs mt-1">Home</span>
+          </Link>
 
-      {/* Mobile Menu */}
-      <div
-        className={`${
-          open ? "flex" : "hidden"
-        } absolute top-[60px] left-0 w-full bg-white shadow-md py-4 flex-col items-start gap-2 px-5 text-sm md:hidden`}
-      >
-        <Link to="/" className="block">Home</Link>
-        <Link to="/products" className="block">Products</Link>
+          <button
+            onClick={() => setOpenMenu((prev) => !prev)}
+            className="flex flex-col items-center text-gray-700 hover:text-indigo-600"
+          >
+            <FaBars size={22} />
+            <span className="text-xs mt-1">Menu</span>
+          </button>
 
-        {/* Categories (Mobile) */}
-        {/* Categories (Desktop) */}
-        <Link to="/shop/mens">Men</Link>
-        <Link to="/shop/womens">Women</Link>
-        <Link to="/shop/kids">Kids</Link>
-        <Link to="/shop/beauty">Accessories</Link>
+          <Link
+            to="/cart"
+            className="relative flex flex-col items-center text-gray-700 hover:text-indigo-600"
+          >
+            <FaShoppingCart size={22} />
+            {cartCount > 0 && (
+              <span className="absolute -top-1 -right-2 text-xs text-white bg-indigo-500 w-4 h-4 rounded-full flex items-center justify-center">
+                {cartCount}
+              </span>
+            )}
+            <span className="text-xs mt-1">Cart</span>
+          </Link>
 
+          <Link
+            to={user ? "/profile" : "/login"}
+            className="flex flex-col items-center text-gray-700 hover:text-indigo-600"
+          >
+            <FaUserAlt size={22} />
+            <span className="text-xs mt-1">{user ? "Profile" : "Login"}</span>
+          </Link>
+        </div>
 
-        <Link to="/about" className="block">About</Link>
-        <Link to="/contact" className="block">Contact</Link>
-        <Link to="/cart" className="block">Cart ({cartCount})</Link>
-
-        {user ? (
-          <div className="flex flex-col gap-2 mt-2">
-            {user.role === 'admin' && (
-              <Link
-                to="/admin"
-                className="block px-6 py-2 bg-yellow-500 text-white rounded-full text-sm"
-              >
+        {/* Mobile Menu Drawer */}
+        {openMenu && (
+          <div
+            ref={menuRef}
+            className="absolute bottom-12 left-0 w-full bg-white border-t border-gray-200 shadow-md flex flex-col py-4 px-4 space-y-2"
+          >
+            {user?.role === "admin" && (
+              <Link to="/admin" className="block text-yellow-500 hover:text-yellow-600">
                 Admin Dashboard
               </Link>
             )}
-            <span className="block px-6 py-2 text-gray-700 text-sm">Hello, {user.name}</span>
-            <Link
-              to="/myorders"
-              className="block px-6 py-2 bg-indigo-500 text-white rounded-full text-sm"
-            >
-              My Orders
-            </Link>
-            <button
-              onClick={logout}
-              className="block px-6 py-2 bg-red-500 text-white rounded-full text-sm"
-            >
-              Logout
-            </button>
-          </div>
-        ) : (
-          <div className="flex flex-col gap-2 mt-2">
-            <Link
-              to="/login"
-              className="block px-6 py-2 bg-indigo-500 text-white rounded-full text-sm"
-            >
-              Login
-            </Link>
-            <Link
-              to="/signup"
-              className="block px-6 py-2 bg-green-500 text-white rounded-full text-sm"
-            >
-              Signup
-            </Link>
+
+            {user && (
+              <Link to="/myorders" className="block text-gray-700 hover:text-indigo-600">
+                My Orders
+              </Link>
+            )}
+
+            <Link to="/products" className="block text-gray-700 hover:text-indigo-600">Products</Link>
+            <Link to="/shop/mens" className="block text-gray-700 hover:text-indigo-600">Men</Link>
+            <Link to="/shop/womens" className="block text-gray-700 hover:text-indigo-600">Women</Link>
+            <Link to="/shop/kids" className="block text-gray-700 hover:text-indigo-600">Kids</Link>
+            <Link to="/shop/beauty" className="block text-gray-700 hover:text-indigo-600">Accessories</Link>
+            <Link to="/about" className="block text-gray-700 hover:text-indigo-600">About</Link>
+            <Link to="/contact" className="block text-gray-700 hover:text-indigo-600">Contact</Link>
+
+            {user && (
+              <button
+                onClick={logout}
+                className="w-full text-left text-red-500 hover:text-red-600 mt-2"
+              >
+                Logout
+              </button>
+            )}
           </div>
         )}
       </div>

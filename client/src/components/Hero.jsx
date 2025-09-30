@@ -1,16 +1,17 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import hero from '../assets/hero-image.webp'
+import hero from "../assets/hero-image.webp";
 
 const Hero = () => {
   return (
     <section
-      className="flex flex-col items-center pb-48 text-center text-white max-md:px-2 bg-cover bg-center"
-      style={{ backgroundImage: `url(${hero})` }}
+      className="flex flex-col items-center text-center text-white max-md:px-2 bg-cover bg-center"
+      style={{
+        backgroundImage: `url(${hero})`,
+        paddingBottom: "12rem", // extra padding for mobile navbar
+      }}
     >
-      {/* Navbar inside Hero (optional if you want hero + navbar together) */}
-      
-      {/* Community Preview (optional) */}
+      {/* Community Preview */}
       <div className="flex flex-wrap items-center justify-center p-1.5 mt-24 md:mt-28 rounded-full border border-slate-400 text-xs">
         <div className="flex items-center">
           <img
