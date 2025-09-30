@@ -65,7 +65,7 @@ const ProductList = () => {
     return <p className="p-6 text-center text-gray-400">No products found</p>;
 
   return (
-    <div className="flex-1 py-10 flex flex-col gap-6 md:p-10 p-4">
+    <div className="flex-1 py-10 flex flex-col gap-6 md:p-10 p-4 min-h-screen overflow-x-hidden">
       {/* Desktop Table */}
       <div className="hidden md:block overflow-x-auto bg-white rounded-md border border-gray-200">
         <table className="min-w-full">
@@ -115,7 +115,7 @@ const ProductList = () => {
         {products.map((product) => (
           <div
             key={product._id}
-            className="flex flex-col bg-white rounded-lg p-4 shadow border border-gray-200 hover:shadow-md transition-shadow w-full overflow-hidden"
+            className="flex flex-col bg-white rounded-lg p-4 shadow border border-gray-200 hover:shadow-md transition-shadow w-full"
           >
             {/* Image */}
             <div className="flex justify-center mb-3">
@@ -127,11 +127,11 @@ const ProductList = () => {
             </div>
 
             {/* Product Info */}
-            <div className="flex flex-col items-center text-center gap-1 w-full overflow-hidden">
-              <h3 className="font-semibold text-gray-900 text-sm truncate max-w-full break-words">
+            <div className="flex flex-col items-center text-center gap-1 w-full">
+              <h3 className="font-semibold text-gray-900 text-sm break-words">
                 {product.name}
               </h3>
-              <p className="text-gray-500 text-xs truncate max-w-full break-words">
+              <p className="text-gray-500 text-xs break-words">
                 {product.category}
               </p>
               <p className="text-gray-800 font-semibold text-sm mt-1">
