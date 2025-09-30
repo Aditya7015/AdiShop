@@ -31,11 +31,13 @@ const Cart = () => {
   const calculateTotalPrice = () =>
     items.reduce((acc, item) => acc + calculateSubtotal(item.productId, item.quantity), 0);
 
+  const API_URL = import.meta.env.VITE_API_URL;
+
   const handleBuyNow = async () => {
     if (items.length === 0) return;
 
     try {
-      const res = await fetch('http://localhost:5000/api/stripe/checkout', {
+      const res = await fetch(`${API_URL}/stripe/checkout`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId }),
@@ -49,6 +51,7 @@ const Cart = () => {
       toast.error('Failed to initiate payment');
     }
   };
+
 
   if (loading) return <p className="text-center mt-20">Loading cart...</p>;
   if (error) return <p className="text-center mt-20 text-red-500">{error}</p>;
