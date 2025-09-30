@@ -11,6 +11,8 @@ import dashboardRoutes from './routes/dashboardRoutes.js'
 import stripeRoutes from './routes/stripeRoutes.js';
 import webhookRoutes from './routes/webhookRoutes.js';
 import orderRoutes from "./routes/orderRoutes.js";
+import chatRoutes from './routes/chatRoutes.js';
+
 
 
 
@@ -60,6 +62,8 @@ app.use("/api/dashboard", dashboardRoutes);
 app.use('/api/stripe', stripeRoutes);
 
 app.use("/api/orders", orderRoutes);
+app.use('/api', chatRoutes);
+
 
 
 

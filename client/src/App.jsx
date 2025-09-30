@@ -5,6 +5,7 @@ import { AuthContext } from './context/AuthContext';
 import Navbar from './components/Navbar';
 import PromotionSection from './components/PromotionSection';
 import Footer from './components/Footer';
+import Chatbot from './components/Chatbot'; // Import the Chatbot
 
 import Home from './pages/Home';
 import Products from './pages/Products';
@@ -41,7 +42,6 @@ const App = () => {
 
       <Routes>
         {/* User Routes */}
-        {/* User Routes */}
         <Route path="/" element={<Home />} />
         <Route path="/products" element={<Products />} />
         <Route path="/products/:id" element={<ProductDetail />} />
@@ -58,8 +58,6 @@ const App = () => {
         {/* Dynamic Category Page */}
         <Route path="/shop/:category" element={<CategoryPage />} />
 
-
-
         {/* Admin Routes - always declared */}
         <Route path="/admin" element={<AdminLayout />}>
           <Route index element={<Dashboard />} />
@@ -67,6 +65,9 @@ const App = () => {
           <Route path="productstatus" element={<ProductStatus />} />
         </Route>
       </Routes>
+
+      {/* Chatbot - Show on all non-admin pages */}
+      {!isAdminRoute && <Chatbot />}
 
       {!isAdminRoute && <Footer />}
     </>
