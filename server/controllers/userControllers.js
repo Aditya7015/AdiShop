@@ -1,6 +1,9 @@
-// import User from "../models/User.js";
-// import bcrypt from "bcryptjs";
-// import jwt from "jsonwebtoken";
+import User from "../models/User.js";
+import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
+import Product from "../models/Product.js";
+import cloudinary from "../configs/cloudinary.js";
+
 
 // export const registerUser = async (req, res) => {
 //   try {
@@ -30,39 +33,7 @@
 //   }
 // };
 
-// export const loginUser = async (req, res) => {
-//   try {
-//     const { email, password } = req.body;
-
-//     const user = await User.findOne({ email });
-//     if (!user) return res.status(400).json({ message: "Invalid credentials" });
-
-//     const isMatch = await bcrypt.compare(password, user.password);
-//     if (!isMatch) return res.status(400).json({ message: "Invalid credentials" });
-
-//     const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, {
-//       expiresIn: "7d",
-//     });
-
-//     res.json({
-//       _id: user._id,
-//       name: user.name,
-//       email: user.email,
-//       role: user.role,
-//       token,
-//     });
-//   } catch (error) {
-//     res.status(500).json({ message: error.message });
-//   }
-// };
-
-
-import User from "../models/User.js";
-import bcrypt from "bcryptjs";
-import jwt from "jsonwebtoken";
-import Product from "../models/Product.js";
-import cloudinary from "../configs/cloudinary.js";
-
+import { sendWelcomeEmail } from '../services/emailService.js';
 
 export const registerUser = async (req, res) => {
   try {
@@ -75,6 +46,18 @@ export const registerUser = async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, salt);
 
     const user = await User.create({ name, email, password: hashedPassword, role });
+
+    // Send welcome email (non-blocking with proper error handling)
+    try {
+      const emailResult = await sendWelcomeEmail(user);
+      if (emailResult.success) {
+        console.log(`🟢 Welcome email sent to: ${user.email}`);
+      } else {
+        console.log(`🟡 Email not sent (configuration issue): ${user.email}`);
+      }
+    } catch (emailError) {
+      console.error('🔴 Email error (non-fatal):', emailError.message);
+    }
 
     const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, {
       expiresIn: "7d",

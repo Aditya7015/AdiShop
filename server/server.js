@@ -12,8 +12,7 @@ import stripeRoutes from './routes/stripeRoutes.js';
 import webhookRoutes from './routes/webhookRoutes.js';
 import orderRoutes from "./routes/orderRoutes.js";
 import chatRoutes from './routes/chatRoutes.js';
-
-
+import orderStatusRoutes from './routes/orderStatusRoutes.js';
 
 
 
@@ -63,8 +62,7 @@ app.use('/api/stripe', stripeRoutes);
 
 app.use("/api/orders", orderRoutes);
 app.use('/api', chatRoutes);
-
-
+app.use("/api/order-status", orderStatusRoutes);
 
 
 

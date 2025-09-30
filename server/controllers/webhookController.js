@@ -2,6 +2,9 @@ import express from 'express';
 import Stripe from 'stripe';
 import Order from '../models/Order.js';
 import Cart from '../models/Cart.js';
+import User from '../models/User.js';
+import Product from '../models/Product.js';
+import { sendOrderConfirmation } from '../services/emailService.js';
 
 const router = express.Router();
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
@@ -22,36 +25,43 @@ router.post('/', express.raw({ type: 'application/json' }), async (req, res) => 
     const session = event.data.object;
 
     try {
-      // Try finding order by stripe session id
-      let order = await Order.findOne({ stripeSessionId: session.id });
-
-      // fallback: maybe session metadata has orderId or userId (we added userId earlier)
-      if (!order && session.metadata?.orderId) {
-        order = await Order.findOne({ orderId: session.metadata.orderId });
-      }
+      // Find order by stripe session id
+      const order = await Order.findOne({ stripeSessionId: session.id });
 
       if (order) {
         order.paymentStatus = 'paid';
         await order.save();
         console.log(`Order ${order.orderId} marked as paid`);
 
-        // Clear user's cart (prefer order.userId, fallback to session.metadata.userId)
-        const uid = order.userId ? String(order.userId) : session.metadata?.userId;
-        if (uid) {
+        // Send order confirmation email
+        try {
+          const user = await User.findById(order.customer);
+          
+          if (user) {
+            // Get product details for email
+            const productIds = order.products.map(p => p.product);
+            const products = await Product.find({ _id: { $in: productIds } });
+            
+            await sendOrderConfirmation(order, user, products);
+            console.log(`🟢 Order confirmation email sent to: ${user.email}`);
+          } else {
+            console.warn(`User not found for order ${order.orderId}`);
+          }
+        } catch (emailError) {
+          console.error('🔴 Failed to send order confirmation email:', emailError);
+        }
+
+        // Clear user's cart
+        if (order.customer) {
           try {
-            const cart = await Cart.findOne({ userId: uid });
-            if (cart) {
-              cart.products = [];
-              await cart.save();
-              console.log(`Cleared cart for user ${uid}`);
-            } else {
-              console.log(`No cart found for user ${uid} (nothing to clear)`);
-            }
+            await Cart.findOneAndUpdate(
+              { userId: order.customer },
+              { products: [] }
+            );
+            console.log(`Cleared cart for user ${order.customer}`);
           } catch (err) {
             console.error('Error clearing cart for user:', err);
           }
-        } else {
-          console.warn('No userId available in order or session metadata to clear cart.');
         }
       } else {
         console.warn(`No order found for sessionId: ${session.id}`);
