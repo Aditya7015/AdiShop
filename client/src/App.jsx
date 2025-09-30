@@ -22,6 +22,7 @@ import ProductStatus from './pages/admin/ProductList';
 import ProductDetail from './pages/ProductDetail';
 import CategoryPage from './pages/CategoryPage';
 import Success from './pages/SuccessPage';
+import ProfilePage from './pages/ProfilePage';
 
 const App = () => {
   const { user } = useContext(AuthContext);
@@ -39,21 +40,21 @@ const App = () => {
       <Routes>
         {/* User Routes */}
         {/* User Routes */}
-<Route path="/" element={<Home />} />
-<Route path="/products" element={<Products />} />
-<Route path="/products/:id" element={<ProductDetail />} />
-<Route path="/cart" element={<Cart />} />
-<Route path="/login" element={<Login />} />
-<Route path="/signup" element={<Signup />} />
-<Route path="/about" element={<About />} />
-<Route path="/contact" element={<Contact />} />
-<Route path="/myorders" element={<MyOrders />} />
-<Route path='/success' element={<Success />} />
-{/* Dynamic Category Page */}
-<Route path="/shop/:category" element={<CategoryPage />} />
+        <Route path="/" element={<Home />} />
+        <Route path="/products" element={<Products />} />
+        <Route path="/products/:id" element={<ProductDetail />} />
+        <Route path="/cart" element={<Cart />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/signup" element={<Signup />} />
+        <Route path="/about" element={<About />} />
+        <Route path="/contact" element={<Contact />} />
+        <Route path="/myorders" element={<MyOrders />} />
+        <Route path='/success' element={<Success />} />
+        <Route path='/profile' element={<ProfilePage />} />
+        {/* Dynamic Category Page */}
+        <Route path="/shop/:category" element={<CategoryPage />} />
 
 
-        
 
         {/* Admin Routes - always declared */}
         <Route path="/admin" element={<AdminLayout />}>
