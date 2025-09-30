@@ -11,19 +11,33 @@ const Success = () => {
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  const API_URL = import.meta.env.VITE_API_URL; // <-- use VITE_API_URL
+  const API_URL = import.meta.env.VITE_API_URL;
 
   useEffect(() => {
+    if (!sessionId) return;
+
+    let retries = 0;
+    const maxRetries = 10; // number of polling attempts
+    const delay = 1000; // 1 second between retries
+
     const fetchOrder = async () => {
-      if (!sessionId) return;
       try {
         const res = await fetch(`${API_URL}/orders/session/${sessionId}`);
         const data = await res.json();
+
         if (res.ok) {
           setOrder(data.order);
-          setLoading(false);
-          // Clear cart after successful payment
-          localStorage.removeItem("cart"); // or dispatch redux clear action
+          // If still pending and retries left, poll again
+          if (data.order.paymentStatus === "pending" && retries < maxRetries) {
+            retries++;
+            setTimeout(fetchOrder, delay);
+          } else {
+            setLoading(false);
+            // Clear cart once payment is confirmed
+            if (data.order.paymentStatus === "paid") {
+              localStorage.removeItem("cart");
+            }
+          }
         } else {
           throw new Error(data.message || "Order not found");
         }
@@ -37,15 +51,42 @@ const Success = () => {
     fetchOrder();
   }, [sessionId, API_URL]);
 
-  if (loading) return <p className="text-center mt-20">Loading order...</p>;
-  if (!order) return <p className="text-center mt-20 text-red-500">Order not found.</p>;
+  if (loading)
+    return (
+      <div className="text-center mt-20">
+        <p>Loading order details...</p>
+        <p className="text-sm text-gray-500 mt-2">
+          Waiting for payment confirmation from Stripe.
+        </p>
+      </div>
+    );
+
+  if (!order)
+    return (
+      <p className="text-center mt-20 text-red-500">
+        Order not found. Please contact support.
+      </p>
+    );
 
   return (
     <div className="max-w-4xl mx-auto py-16 px-6">
-      <h1 className="text-3xl font-medium mb-6 text-green-600">Payment Successful!</h1>
+      <h1 className="text-3xl font-medium mb-6 text-green-600">
+        Payment Successful!
+      </h1>
       <p>Order ID: {order.orderId}</p>
       <p>Total Paid: ${order.amount}</p>
-      <p>Status: {order.paymentStatus}</p>
+      <p>
+        Status:{" "}
+        <span
+          className={
+            order.paymentStatus === "paid"
+              ? "text-green-600 font-medium"
+              : "text-yellow-600 font-medium"
+          }
+        >
+          {order.paymentStatus}
+        </span>
+      </p>
 
       <h2 className="text-xl mt-6 font-medium">Products:</h2>
       <ul className="list-disc pl-5 mt-2">
