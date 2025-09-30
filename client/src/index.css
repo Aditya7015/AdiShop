@@ -1,2 +1,14 @@
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap');
 @import "tailwindcss";
+
+/* Reset unwanted default margins */
+html, body {
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden; /* Prevent horizontal gaps */
+}
+
+/* For smooth scaling */
+* {
+  box-sizing: border-box;
+}
