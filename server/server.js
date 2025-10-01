@@ -13,6 +13,9 @@ import webhookRoutes from './routes/webhookRoutes.js';
 import orderRoutes from "./routes/orderRoutes.js";
 import chatRoutes from './routes/chatRoutes.js';
 import orderStatusRoutes from './routes/orderStatusRoutes.js';
+import { searchProducts } from './controllers/searchController.js';
+
+
 
 
 
@@ -63,7 +66,7 @@ app.use('/api/stripe', stripeRoutes);
 app.use("/api/orders", orderRoutes);
 app.use('/api', chatRoutes);
 app.use("/api/order-status", orderStatusRoutes);
-
+app.get("/api/search", searchProducts);
 
 
 

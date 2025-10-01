@@ -4,6 +4,7 @@ import { AuthContext } from "../context/AuthContext";
 import { useDispatch, useSelector } from "react-redux";
 import { removeFromWishlist, fetchWishlist } from "../redux/wishlistSlice";
 import { AiOutlineEdit, AiOutlineDelete, AiOutlineShopping, AiOutlineHeart, AiOutlineUser, AiOutlineHome, AiOutlineSetting, AiOutlinePlus } from "react-icons/ai";
+import default_icon from '../assets/users/default_icon.jpg'
 
 const ProfilePage = () => {
   const { user } = useContext(AuthContext);
@@ -232,10 +233,13 @@ const ProfilePage = () => {
           <div className="flex flex-col md:flex-row items-center gap-6">
             <div className="relative">
               <img
-                src={profile.avatarUrl}
-                alt="Profile"
-                className="w-24 h-24 rounded-full object-cover border-4 border-indigo-100"
-              />
+                  src={profile.avatarUrl || default_icon}
+                  alt="Profile"
+                  className="w-24 h-24 rounded-full object-cover border-4 border-indigo-100"
+                  onError={(e) => {
+                    e.target.src = "/default-avatar.png";
+                  }}
+                />
               <div className="absolute bottom-0 right-0 bg-indigo-500 rounded-full p-1">
                 <AiOutlineEdit className="text-white text-sm" />
               </div>

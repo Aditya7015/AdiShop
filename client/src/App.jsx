@@ -26,6 +26,7 @@ import Success from './pages/SuccessPage';
 import ProfilePage from './pages/ProfilePage';
 import WishlistPage from './pages/WishlistPage';
 import OrderDetail from './pages/OrderDetail';
+import SearchResults from './pages/SearchResults';
 
 const App = () => {
   const { user } = useContext(AuthContext);
@@ -55,6 +56,7 @@ const App = () => {
         <Route path='/profile' element={<ProfilePage />} />
         <Route path='/wishlist' element={<WishlistPage />} />
         <Route path='/order/:orderId' element={<OrderDetail />} />
+        <Route path='/search' element={<SearchResults />} />
         {/* Dynamic Category Page */}
         <Route path="/shop/:category" element={<CategoryPage />} />
 

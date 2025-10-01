@@ -82,8 +82,6 @@ const Chatbot = () => {
     }
   };
 
-  
-
   const handleKeyPress = (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
@@ -104,16 +102,27 @@ const Chatbot = () => {
       {/* Chatbot Toggle Button */}
       <button
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-6 right-6 w-14 h-14 bg-indigo-600 text-white rounded-full shadow-lg hover:bg-indigo-700 transition-all duration-300 flex items-center justify-center z-50"
+        className="fixed z-50 
+          /* Mobile positioning - above navbar */
+          bottom-20 right-4
+          /* Desktop positioning */
+          md:bottom-6 md:right-6
+          w-14 h-14 bg-indigo-600 text-white rounded-full shadow-lg hover:bg-indigo-700 transition-all duration-300 flex items-center justify-center"
       >
         <AiOutlineMessage size={24} />
       </button>
 
       {/* Chatbot Modal */}
       {isOpen && (
-        <div className="fixed bottom-6 right-6 w-96 h-[600px] bg-white rounded-2xl shadow-2xl border border-gray-200 z-50 flex flex-col">
+        <div className="fixed z-50 
+          /* Mobile styling - full screen */
+          inset-0 
+          /* Desktop styling - floating window near the button */
+          md:inset-auto md:bottom-6 md:right-6 md:w-96 md:h-[600px] md:rounded-2xl
+          bg-white shadow-2xl border border-gray-200 flex flex-col">
+          
           {/* Header */}
-          <div className="bg-indigo-600 text-white p-4 rounded-t-2xl flex justify-between items-center">
+          <div className="bg-indigo-600 text-white p-4 md:rounded-t-2xl flex justify-between items-center">
             <div>
               <h3 className="font-semibold">Shopping Assistant</h3>
               <p className="text-indigo-100 text-sm">Online • Ready to help</p>
@@ -127,7 +136,7 @@ const Chatbot = () => {
           </div>
 
           {/* Messages Container */}
-          <div className="flex-1 p-4 overflow-y-auto bg-gray-50">
+          <div className="flex-1 p-4 overflow-y-auto bg-gray-50 md:rounded-b-2xl">
             {messages.map((message) => (
               <div
                 key={message.id}
@@ -185,7 +194,7 @@ const Chatbot = () => {
           )}
 
           {/* Input Area */}
-          <div className="p-4 border-t border-gray-200">
+          <div className="p-4 border-t border-gray-200 md:rounded-b-2xl">
             <div className="flex gap-2">
               <input
                 type="text"
