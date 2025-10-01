@@ -25,7 +25,7 @@ const createTransporter = () => {
   });
 };
 
-// Email templates for AdiShow
+// Email templates for AdiShop
 const emailTemplates = {
   orderConfirmation: (order, user, products = []) => {
     const itemsHTML = order.products.map((item, index) => {
@@ -56,8 +56,11 @@ const emailTemplates = {
 <!DOCTYPE html>
 <html>
 <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Order Confirmation - AdiShop</title>
   <style>
-    body { font-family: 'Arial', sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; }
+    body { font-family: 'Arial', sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; background-color: #f9f9f9; }
     .container { max-width: 600px; margin: 0 auto; background: #ffffff; }
     .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; text-align: center; }
     .content { padding: 30px; background: #f9f9f9; }
@@ -73,7 +76,7 @@ const emailTemplates = {
   <div class="container">
     <div class="header">
       <h1>🎉 Order Confirmed!</h1>
-      <p>Thank you for shopping with AdiShow</p>
+      <p>Thank you for shopping with AdiShop</p>
     </div>
     
     <div class="content">
@@ -119,7 +122,7 @@ const emailTemplates = {
       
       <div class="footer">
         <p>Need help? Contact us at <a href="mailto:adityatiwari7553@gmail.com" style="color: #667eea;">adityatiwari7553@gmail.com</a></p>
-        <p>© 2024 AdiShow. All rights reserved.</p>
+        <p>© 2024 AdiShop. All rights reserved.</p>
       </div>
     </div>
   </div>
@@ -132,8 +135,11 @@ const emailTemplates = {
 <!DOCTYPE html>
 <html>
 <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Order Shipped - AdiShop</title>
   <style>
-    body { font-family: 'Arial', sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; }
+    body { font-family: 'Arial', sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; background-color: #f9f9f9; }
     .container { max-width: 600px; margin: 0 auto; background: #ffffff; }
     .header { background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; padding: 30px; text-align: center; }
     .content { padding: 30px; background: #f9f9f9; }
@@ -146,7 +152,7 @@ const emailTemplates = {
   <div class="container">
     <div class="header">
       <h1>🚚 Your Order is Shipped!</h1>
-      <p>Good news! Your AdiShow order is on the way</p>
+      <p>Good news! Your AdiShop order is on the way</p>
     </div>
     
     <div class="content">
@@ -183,7 +189,7 @@ const emailTemplates = {
       
       <div class="footer">
         <p>Questions? Contact us at <a href="mailto:adityatiwari7553@gmail.com" style="color: #667eea;">adityatiwari7553@gmail.com</a></p>
-        <p>© 2024 AdiShow. All rights reserved.</p>
+        <p>© 2024 AdiShop. All rights reserved.</p>
       </div>
     </div>
   </div>
@@ -195,8 +201,11 @@ const emailTemplates = {
 <!DOCTYPE html>
 <html>
 <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Welcome to AdiShop</title>
   <style>
-    body { font-family: 'Arial', sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; }
+    body { font-family: 'Arial', sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; background-color: #f9f9f9; }
     .container { max-width: 600px; margin: 0 auto; background: #ffffff; }
     .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; text-align: center; }
     .content { padding: 30px; background: #f9f9f9; }
@@ -208,16 +217,16 @@ const emailTemplates = {
 <body>
   <div class="container">
     <div class="header">
-      <h1>Welcome to AdiShow! 🛍️</h1>
+      <h1>Welcome to AdiShop! 🛍️</h1>
       <p>Your Premier E-commerce Destination</p>
     </div>
     
     <div class="content">
       <p>Hi <strong>${user.name}</strong>,</p>
-      <p>Welcome to AdiShow! We're thrilled to have you join our growing community of fashion enthusiasts and smart shoppers.</p>
+      <p>Welcome to AdiShop! We're thrilled to have you join our growing community of fashion enthusiasts and smart shoppers.</p>
       
       <div class="benefits">
-        <p style="font-weight: bold; margin-bottom: 15px; color: #667eea;">As a valued AdiShow member, you get:</p>
+        <p style="font-weight: bold; margin-bottom: 15px; color: #667eea;">As a valued AdiShop member, you get:</p>
         <ul style="list-style: none; padding: 0;">
           <li style="padding: 10px 0; border-bottom: 1px solid #f0f0f0;">🎁 <strong>Exclusive member discounts</strong> on your first order</li>
           <li style="padding: 10px 0; border-bottom: 1px solid #f0f0f0;">🚚 <strong>Free shipping</strong> on orders above ₹499</li>
@@ -239,12 +248,12 @@ const emailTemplates = {
       
       <div style="text-align: center; margin: 25px 0;">
         <a href="${process.env.FRONTEND_URL}/products" style="background: #667eea; color: white; padding: 14px 28px; text-decoration: none; border-radius: 5px; display: inline-block; font-weight: bold; font-size: 1.1em; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);">
-          Explore AdiShow Collections
+          Explore AdiShop Collections
         </a>
       </div>
       
       <div class="footer">
-        <p>Happy Shopping!<br>The AdiShow Team</p>
+        <p>Happy Shopping!<br>The AdiShop Team</p>
         <p style="margin-top: 10px; font-size: 0.8em;">
           Developed with ❤️ by Aditya Tiwari | GCET Greater Noida
         </p>
@@ -268,11 +277,20 @@ export const sendEmail = async (to, subject, html, text = '') => {
     const transporter = createTransporter();
     
     const mailOptions = {
-      from: process.env.EMAIL_FROM,
+      from: {
+        name: 'AdiShop', // Proper sender name
+        address: process.env.EMAIL_FROM || process.env.EMAIL_USER
+      },
       to,
-      subject: `AdiShow - ${subject}`,
-      text: text || subject,
+      subject: `AdiShop - ${subject}`,
+      text: text || subject.replace(/<[^>]*>/g, ''), // Plain text version without HTML tags
       html,
+      // Headers to improve deliverability
+      headers: {
+        'X-Priority': '3',
+        'X-MSMail-Priority': 'Normal',
+        'Importance': 'Normal'
+      }
     };
 
     console.log('🟡 Attempting to send email via Brevo...');
@@ -290,8 +308,9 @@ export const sendOrderConfirmation = async (order, user, products = []) => {
   try {
     const html = emailTemplates.orderConfirmation(order, user, products);
     const subject = `Order Confirmed - #${order.orderId}`;
+    const text = `Hi ${user.name}, your order #${order.orderId} has been confirmed. Total amount: ₹${order.amount}. Thank you for shopping with AdiShop!`;
     
-    return await sendEmail(user.email, subject, html);
+    return await sendEmail(user.email, subject, html, text);
   } catch (error) {
     console.error('🔴 Order confirmation email failed:', error);
     return { success: false, error: error.message };
@@ -301,15 +320,17 @@ export const sendOrderConfirmation = async (order, user, products = []) => {
 export const sendOrderShipped = async (order, user, trackingNumber = null) => {
   const html = emailTemplates.orderShipped(order, user, trackingNumber);
   const subject = `Your Order is Shipped! - #${order.orderId}`;
+  const text = `Hi ${user.name}, your order #${order.orderId} has been shipped. ${trackingNumber ? `Tracking number: ${trackingNumber}` : 'Tracking information will be available soon.'}`;
   
-  return await sendEmail(user.email, subject, html);
+  return await sendEmail(user.email, subject, html, text);
 };
 
 export const sendWelcomeEmail = async (user) => {
   const html = emailTemplates.welcome(user);
-  const subject = 'Welcome to AdiShow! Start Your Shopping Journey';
+  const subject = 'Welcome to AdiShop! Start Your Shopping Journey';
+  const text = `Welcome to AdiShop, ${user.name}! We're excited to have you as a member. Enjoy exclusive discounts, free shipping on orders above ₹499, and early access to new collections.`;
   
-  return await sendEmail(user.email, subject, html);
+  return await sendEmail(user.email, subject, html, text);
 };
 
 export default {
