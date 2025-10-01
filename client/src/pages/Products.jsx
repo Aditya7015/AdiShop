@@ -50,13 +50,19 @@ const Products = () => {
     }
   }, [category]);
 
-  // Fetch products
+  // Fetch products - FILTER OUT OUT-OF-STOCK PRODUCTS
   useEffect(() => {
     const fetchProducts = async () => {
       try {
         const res = await axios.get(`${BASE_URL}/products`);
-        setProducts(res.data);
-        setFilteredProducts(res.data);
+        
+        // Filter out products where inStock is false
+        const availableProducts = res.data.filter(product => 
+          product.inStock !== false // Only show products that are in stock
+        );
+        
+        setProducts(availableProducts);
+        setFilteredProducts(availableProducts);
         setLoading(false);
       } catch (err) {
         console.error("Error fetching products:", err);
@@ -93,7 +99,7 @@ const Products = () => {
       return price >= min && price <= max;
     });
 
-    // In Stock
+    // In Stock filter (if enabled)
     if (filters.inStock) {
       result = result.filter((p) => p.inStock === true);
     }
@@ -112,6 +118,7 @@ const Products = () => {
     setFilteredProducts(result);
   }, [filters, products]);
 
+  // Rest of your component remains the same...
   if (loading) return <p className="text-center mt-20">Loading products...</p>;
   if (error) return <p className="text-center mt-20 text-red-500">{error}</p>;
 

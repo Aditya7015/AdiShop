@@ -2,7 +2,8 @@ import React, { useState, useContext } from 'react';
 import demo_image2 from '../assets/demo_image2.jpg';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { AuthContext } from '../context/AuthContext'; // ✅ import context
+import { AuthContext } from '../context/AuthContext';
+import { toast } from 'react-hot-toast';
 
 const apiUrl = import.meta.env.VITE_API_URL;
 
@@ -37,10 +38,12 @@ const Signup = () => {
 
             // Redirect user after signup
             navigate('/');
-        } catch (err) {
-            console.error(err.response?.data?.message || err.message);
-            alert(err.response?.data?.message || 'Signup failed');
-        }
+        } 
+
+catch (err) {
+    console.error(err.response?.data?.message || err.message);
+    toast.error(err.response?.data?.message || 'Signup failed');
+}
     };
 
     return (

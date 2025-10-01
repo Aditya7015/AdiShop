@@ -4,6 +4,8 @@ import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { AuthContext } from '../context/AuthContext';
 const apiUrl = import.meta.env.VITE_API_URL;
+import toast from 'react-hot-toast';
+
 
 
 const Login = () => {
@@ -29,9 +31,9 @@ const Login = () => {
         // Redirect to home or dashboard
         navigate('/');
     } catch (err) {
-        console.error(err.response?.data?.message || err.message);
-        alert(err.response?.data?.message || 'Login failed');
-    }
+    console.error(err.response?.data?.message || err.message);
+    toast.error(err.response?.data?.message || 'Login failed');
+}
 };
 
 

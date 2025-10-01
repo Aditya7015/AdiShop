@@ -1,6 +1,7 @@
 import React, { useContext } from 'react';
 import { Link, Outlet, useLocation, Navigate } from 'react-router-dom';
 import { AuthContext } from '../../context/AuthContext';
+import logo from '../../assets/logo/logo.png'
 
 const AdminLayout = () => {
   const { user, logout } = useContext(AuthContext);
@@ -40,12 +41,18 @@ const AdminLayout = () => {
       {/* Main Content */}
       <div className="flex-1 flex flex-col">
         <div className="flex items-center justify-between px-4 md:px-8 border-b border-gray-300 py-3 bg-white">
-          <a href="/"><img className="h-9" src="https://raw.githubusercontent.com/prebuiltui/prebuiltui/main/assets/dummyLogo/dummyLogoColored.svg" alt="Logo" /></a>
+          <Link to="/">
+            <img 
+              className="h-9 w-auto object-contain" 
+              src={logo} 
+              alt="Website Logo" 
+            />
+          </Link>
           <div className="flex items-center gap-5 text-gray-500">
             <p>Hi! Admin</p>
             <button
               onClick={logout}
-              className="border rounded-full text-sm px-4 py-1"
+              className="border rounded-full text-sm px-4 py-1 hover:bg-gray-50 transition-colors"
             >
               Logout
             </button>
