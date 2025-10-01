@@ -56,11 +56,8 @@ const emailTemplates = {
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Order Confirmation - AdiShop</title>
   <style>
-    body { font-family: 'Arial', sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; background-color: #f9f9f9; }
+    body { font-family: 'Arial', sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; }
     .container { max-width: 600px; margin: 0 auto; background: #ffffff; }
     .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; text-align: center; }
     .content { padding: 30px; background: #f9f9f9; }
@@ -135,11 +132,8 @@ const emailTemplates = {
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Order Shipped - AdiShop</title>
   <style>
-    body { font-family: 'Arial', sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; background-color: #f9f9f9; }
+    body { font-family: 'Arial', sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; }
     .container { max-width: 600px; margin: 0 auto; background: #ffffff; }
     .header { background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; padding: 30px; text-align: center; }
     .content { padding: 30px; background: #f9f9f9; }
@@ -201,11 +195,8 @@ const emailTemplates = {
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Welcome to AdiShop</title>
   <style>
-    body { font-family: 'Arial', sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; background-color: #f9f9f9; }
+    body { font-family: 'Arial', sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; }
     .container { max-width: 600px; margin: 0 auto; background: #ffffff; }
     .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; text-align: center; }
     .content { padding: 30px; background: #f9f9f9; }
@@ -277,20 +268,11 @@ export const sendEmail = async (to, subject, html, text = '') => {
     const transporter = createTransporter();
     
     const mailOptions = {
-      from: {
-        name: 'AdiShop', // Proper sender name
-        address: process.env.EMAIL_FROM || process.env.EMAIL_USER
-      },
+      from: process.env.EMAIL_FROM,
       to,
       subject: `AdiShop - ${subject}`,
-      text: text || subject.replace(/<[^>]*>/g, ''), // Plain text version without HTML tags
+      text: text || subject,
       html,
-      // Headers to improve deliverability
-      headers: {
-        'X-Priority': '3',
-        'X-MSMail-Priority': 'Normal',
-        'Importance': 'Normal'
-      }
     };
 
     console.log('🟡 Attempting to send email via Brevo...');
@@ -308,9 +290,8 @@ export const sendOrderConfirmation = async (order, user, products = []) => {
   try {
     const html = emailTemplates.orderConfirmation(order, user, products);
     const subject = `Order Confirmed - #${order.orderId}`;
-    const text = `Hi ${user.name}, your order #${order.orderId} has been confirmed. Total amount: ₹${order.amount}. Thank you for shopping with AdiShop!`;
     
-    return await sendEmail(user.email, subject, html, text);
+    return await sendEmail(user.email, subject, html);
   } catch (error) {
     console.error('🔴 Order confirmation email failed:', error);
     return { success: false, error: error.message };
@@ -320,17 +301,15 @@ export const sendOrderConfirmation = async (order, user, products = []) => {
 export const sendOrderShipped = async (order, user, trackingNumber = null) => {
   const html = emailTemplates.orderShipped(order, user, trackingNumber);
   const subject = `Your Order is Shipped! - #${order.orderId}`;
-  const text = `Hi ${user.name}, your order #${order.orderId} has been shipped. ${trackingNumber ? `Tracking number: ${trackingNumber}` : 'Tracking information will be available soon.'}`;
   
-  return await sendEmail(user.email, subject, html, text);
+  return await sendEmail(user.email, subject, html);
 };
 
 export const sendWelcomeEmail = async (user) => {
   const html = emailTemplates.welcome(user);
   const subject = 'Welcome to AdiShop! Start Your Shopping Journey';
-  const text = `Welcome to AdiShop, ${user.name}! We're excited to have you as a member. Enjoy exclusive discounts, free shipping on orders above ₹499, and early access to new collections.`;
   
-  return await sendEmail(user.email, subject, html, text);
+  return await sendEmail(user.email, subject, html);
 };
 
 export default {
