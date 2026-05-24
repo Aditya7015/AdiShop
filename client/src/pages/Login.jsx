@@ -1,95 +1,327 @@
-import React, { useContext, useState } from 'react';
-import demo_image from '../assets/demo_image.jpg';
-import { Link, useNavigate } from 'react-router-dom';
-import axios from 'axios';
-import { AuthContext } from '../context/AuthContext';
-const apiUrl = import.meta.env.VITE_API_URL;
-import toast from 'react-hot-toast';
+// PREMIUM ENHANCED LOGIN PAGE
+// MODERN + CLEAN + MATCHES YOUR ADISHOP DESIGN
+// FULL COPY-PASTE CODE
 
+import React, {
+  useContext,
+  useState,
+} from "react";
 
+import demo_image from "../assets/demo_image.jpg";
+
+import {
+  Link,
+  useNavigate,
+} from "react-router-dom";
+
+import axios from "axios";
+
+import {
+  AuthContext,
+} from "../context/AuthContext";
+
+import toast from "react-hot-toast";
+
+import {
+  Mail,
+  Lock,
+  Eye,
+  EyeOff,
+  Sparkles,
+  ShieldCheck,
+} from "lucide-react";
+
+import { motion } from "framer-motion";
+
+const apiUrl =
+  import.meta.env.VITE_API_URL;
 
 const Login = () => {
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
-    const [error, setError] = useState('');
-    const navigate = useNavigate();
-    const { login } = useContext(AuthContext);
+  const [email, setEmail] =
+    useState("");
 
-    const handleSubmit = async (e) => {
-    e.preventDefault();
-    try {
-        const response = await axios.post(`${apiUrl}/users/login`, {
-            email,
-            password
-        });
+  const [password, setPassword] =
+    useState("");
 
-        // Update global auth state
+  const [loading, setLoading] =
+    useState(false);
+
+  const [
+    showPassword,
+    setShowPassword,
+  ] = useState(false);
+
+  const navigate =
+    useNavigate();
+
+  const { login } =
+    useContext(AuthContext);
+
+  // LOGIN
+  const handleSubmit =
+    async (e) => {
+      e.preventDefault();
+
+      setLoading(true);
+
+      try {
+        const response =
+          await axios.post(
+            `${apiUrl}/users/login`,
+            {
+              email,
+              password,
+            }
+          );
+
         login(response.data);
 
-        console.log('Login successful:', response.data);
+        toast.success(
+          "Login successful!"
+        );
 
-        // Redirect to home or dashboard
-        navigate('/');
-    } catch (err) {
-    console.error(err.response?.data?.message || err.message);
-    toast.error(err.response?.data?.message || 'Login failed');
-}
-};
+        navigate("/");
+      } catch (err) {
+        console.error(
+          err.response?.data
+            ?.message ||
+            err.message
+        );
 
+        toast.error(
+          err.response?.data
+            ?.message ||
+            "Login failed"
+        );
+      } finally {
+        setLoading(false);
+      }
+    };
 
-    return (
-        <div className="flex h-screen w-full">
-            <div className="w-full hidden md:inline-block">
-                <img className="h-full w-full object-cover" src={demo_image} alt="leftSideImage" />
-            </div>
+  return (
+    <div className="min-h-screen bg-[#f5f7fb] flex overflow-hidden">
+      {/* LEFT IMAGE */}
+      <div className="hidden lg:block lg:w-[52%] relative overflow-hidden">
+        <img
+          className="h-full w-full object-cover"
+          src={demo_image}
+          alt="login"
+        />
 
-            <div className="w-full flex flex-col items-center justify-center bg-white p-4">
-                <form className="md:w-96 w-full max-w-sm flex flex-col items-center justify-center p-4" onSubmit={handleSubmit}>
-                    <h2 className="text-4xl text-gray-900 font-medium">Sign in</h2>
-                    <p className="text-sm text-gray-500/90 mt-3 text-center">Welcome back! Please sign in to continue</p>
+        {/* OVERLAY */}
+        <div className="absolute inset-0 bg-gradient-to-r from-black/25 to-transparent" />
 
-                    {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
+        {/* CONTENT */}
+        <div className="absolute bottom-12 left-12 text-white max-w-lg">
+          <div className="inline-flex items-center gap-2 bg-white/15 backdrop-blur-xl px-4 py-2 rounded-full text-sm mb-6">
+            <Sparkles size={16} />
 
-                    {/* Email Input */}
-                    <div className="flex items-center w-full bg-transparent border border-gray-300/60 h-12 rounded-full overflow-hidden pl-6 gap-2 mt-5">
-                        <svg width="16" height="11" viewBox="0 0 16 11" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path fillRule="evenodd" clipRule="evenodd" d="M0 .55.571 0H15.43l.57.55v9.9l-.571.55H.57L0 10.45zm1.143 1.138V9.9h13.714V1.69l-6.503 4.8h-.697zM13.749 1.1H2.25L8 5.356z" fill="#6B7280" />
-                        </svg>
-                        <input
-                            type="email"
-                            placeholder="Email id"
-                            className="bg-transparent text-gray-500/80 placeholder-gray-500/80 outline-none text-sm w-full h-full pr-4"
-                            required
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                        />
-                    </div>
+            Premium Shopping
+            Experience
+          </div>
 
-                    {/* Password Input */}
-                    <div className="flex items-center mt-6 w-full bg-transparent border border-gray-300/60 h-12 rounded-full overflow-hidden pl-6 gap-2">
-                        <svg width="13" height="17" viewBox="0 0 13 17" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M13 8.5c0-.938-.729-1.7-1.625-1.7h-.812V4.25C10.563 1.907 8.74 0 6.5 0S2.438 1.907 2.438 4.25V6.8h-.813C.729 6.8 0 7.562 0 8.5v6.8c0 .938.729 1.7 1.625 1.7h9.75c.896 0 1.625-.762 1.625-1.7zM4.063 4.25c0-1.406 1.093-2.55 2.437-2.55s2.438 1.144 2.438 2.55V6.8H4.061z" fill="#6B7280" />
-                        </svg>
-                        <input
-                            type="password"
-                            placeholder="Password"
-                            className="bg-transparent text-gray-500/80 placeholder-gray-500/80 outline-none text-sm w-full h-full pr-4"
-                            required
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                        />
-                    </div>
+          <h1 className="text-5xl font-semibold leading-tight">
+            Welcome Back To
+            AdiShop
+          </h1>
 
-                    <button type="submit" className="mt-8 w-full h-11 rounded-full text-white bg-indigo-500 hover:opacity-90 transition-opacity">
-                        Login
-                    </button>
-                    <p className="text-gray-500/90 text-sm mt-4">Don’t have an account? 
-                        <Link to='/signup' className='text-indigo-400 hover:underline'>Sign up</Link> 
-                    </p>
-                </form>
-            </div>
+          <p className="mt-5 text-white/80 text-lg leading-relaxed">
+            Sign in to continue
+            exploring premium
+            collections, exclusive
+            offers and your
+            personalized shopping
+            experience.
+          </p>
         </div>
-    );
-}
+      </div>
+
+      {/* RIGHT */}
+      <div className="flex-1 flex items-center justify-center px-5 py-10">
+        <motion.div
+          initial={{
+            opacity: 0,
+            y: 20,
+          }}
+          animate={{
+            opacity: 1,
+            y: 0,
+          }}
+          className="w-full max-w-md"
+        >
+          {/* CARD */}
+          <div className="bg-white rounded-[34px] border border-gray-100 shadow-xl p-8 md:p-10">
+            {/* HEADER */}
+            <div className="text-center">
+              <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-r from-blue-500 to-purple-500 text-white shadow-lg">
+                <ShieldCheck size={24} />
+              </div>
+
+              <h2 className="text-4xl font-semibold text-gray-900 tracking-tight mt-6">
+                Sign In
+              </h2>
+
+              <p className="text-gray-500 mt-3 text-sm leading-relaxed">
+                Login to access your
+                AdiShop account and
+                continue shopping
+              </p>
+            </div>
+
+            {/* FORM */}
+            <form
+              onSubmit={
+                handleSubmit
+              }
+              className="mt-10 space-y-5"
+            >
+              {/* EMAIL */}
+              <div>
+                <label className="text-sm font-medium text-gray-700 mb-2 block">
+                  Email Address
+                </label>
+
+                <div className="relative">
+                  <Mail
+                    size={18}
+                    className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"
+                  />
+
+                  <input
+                    type="email"
+                    placeholder="Enter your email"
+                    className="w-full h-12 rounded-2xl border border-gray-200 bg-gray-50 pl-12 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all duration-300"
+                    required
+                    value={email}
+                    onChange={(
+                      e
+                    ) =>
+                      setEmail(
+                        e.target
+                          .value
+                      )
+                    }
+                  />
+                </div>
+              </div>
+
+              {/* PASSWORD */}
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <label className="text-sm font-medium text-gray-700">
+                    Password
+                  </label>
+
+                  <Link
+                    to="/forgot-password"
+                    className="text-xs text-indigo-600 hover:underline"
+                  >
+                    Forgot Password?
+                  </Link>
+                </div>
+
+                <div className="relative">
+                  <Lock
+                    size={18}
+                    className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"
+                  />
+
+                  <input
+                    type={
+                      showPassword
+                        ? "text"
+                        : "password"
+                    }
+                    placeholder="Enter your password"
+                    className="w-full h-12 rounded-2xl border border-gray-200 bg-gray-50 pl-12 pr-12 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all duration-300"
+                    required
+                    value={
+                      password
+                    }
+                    onChange={(
+                      e
+                    ) =>
+                      setPassword(
+                        e.target
+                          .value
+                      )
+                    }
+                  />
+
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setShowPassword(
+                        !showPassword
+                      )
+                    }
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400"
+                  >
+                    {showPassword ? (
+                      <EyeOff
+                        size={18}
+                      />
+                    ) : (
+                      <Eye
+                        size={18}
+                      />
+                    )}
+                  </button>
+                </div>
+              </div>
+
+              {/* REMEMBER */}
+              <div className="flex items-center justify-between pt-1">
+                <label className="flex items-center gap-2 text-sm text-gray-600 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    className="accent-indigo-600 w-4 h-4"
+                  />
+
+                  Remember me
+                </label>
+
+                <div className="text-xs text-gray-400">
+                  Secure Login
+                </div>
+              </div>
+
+              {/* BUTTON */}
+              <motion.button
+                whileHover={{
+                  scale: 1.01,
+                }}
+                whileTap={{
+                  scale: 0.99,
+                }}
+                type="submit"
+                disabled={
+                  loading
+                }
+                className="w-full h-12 rounded-2xl bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 text-white font-medium shadow-lg hover:shadow-xl transition-all duration-300 mt-3"
+              >
+                {loading
+                  ? "Signing In..."
+                  : "Sign In"}
+              </motion.button>
+            </form>
+
+            {/* FOOTER */}
+            <p className="text-center text-gray-500 text-sm mt-7">
+              Don’t have an
+              account?
+              <Link
+                to="/signup"
+                className="text-indigo-600 font-medium hover:underline ml-1"
+              >
+                Create Account
+              </Link>
+            </p>
+          </div>
+        </motion.div>
+      </div>
+    </div>
+  );
+};
 
 export default Login;

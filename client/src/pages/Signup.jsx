@@ -1,151 +1,389 @@
-import React, { useState, useContext } from 'react';
-import demo_image2 from '../assets/demo_image2.jpg';
-import { Link, useNavigate } from 'react-router-dom';
-import axios from 'axios';
-import { AuthContext } from '../context/AuthContext';
-import { toast } from 'react-hot-toast';
+// PREMIUM ENHANCED SIGNUP PAGE
+// MODERN + CLEAN + MATCHES YOUR ADISHOP DESIGN
+// FULL COPY-PASTE CODE
 
-const apiUrl = import.meta.env.VITE_API_URL;
+import React, {
+  useState,
+  useContext,
+} from "react";
+
+import demo_image2 from "../assets/demo_image2.jpg";
+
+import {
+  Link,
+  useNavigate,
+} from "react-router-dom";
+
+import axios from "axios";
+
+import {
+  AuthContext,
+} from "../context/AuthContext";
+
+import {
+  toast,
+} from "react-hot-toast";
+
+import {
+  User,
+  Mail,
+  Lock,
+  ShieldCheck,
+  Sparkles,
+  Eye,
+  EyeOff,
+} from "lucide-react";
+
+import { motion } from "framer-motion";
+
+const apiUrl =
+  import.meta.env.VITE_API_URL;
 
 const Signup = () => {
-    const [name, setName] = useState('');
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
-    const [role, setRole] = useState('customer'); // default role
-    const navigate = useNavigate();
-    
-    // ✅ get login from context
-    const { login } = useContext(AuthContext);
+  const [name, setName] =
+    useState("");
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        try {
-            const response = await axios.post(`${apiUrl}/users/register`, {
-                name,
-                email,
-                password,
-                role
-            });
+  const [email, setEmail] =
+    useState("");
 
-            // Save user data and token in localStorage
-            localStorage.setItem('userData', JSON.stringify(response.data));
-            localStorage.setItem('userToken', response.data.token);
+  const [password, setPassword] =
+    useState("");
 
-            // ✅ Update global auth state
-            login(response.data);
+  const [role, setRole] =
+    useState("customer");
 
-            console.log('Signup successful:', response.data);
+  const [
+    showPassword,
+    setShowPassword,
+  ] = useState(false);
 
-            // Redirect user after signup
-            navigate('/');
-        } 
+  const [loading, setLoading] =
+    useState(false);
 
-catch (err) {
-    console.error(err.response?.data?.message || err.message);
-    toast.error(err.response?.data?.message || 'Signup failed');
-}
+  const navigate =
+    useNavigate();
+
+  const { login } =
+    useContext(AuthContext);
+
+  // SUBMIT
+  const handleSubmit =
+    async (e) => {
+      e.preventDefault();
+
+      setLoading(true);
+
+      try {
+        const response =
+          await axios.post(
+            `${apiUrl}/users/register`,
+            {
+              name,
+              email,
+              password,
+              role,
+            }
+          );
+
+        localStorage.setItem(
+          "userData",
+          JSON.stringify(
+            response.data
+          )
+        );
+
+        localStorage.setItem(
+          "userToken",
+          response.data.token
+        );
+
+        login(response.data);
+
+        toast.success(
+          "Account created successfully!"
+        );
+
+        navigate("/");
+      } catch (err) {
+        console.error(
+          err.response?.data
+            ?.message ||
+            err.message
+        );
+
+        toast.error(
+          err.response?.data
+            ?.message ||
+            "Signup failed"
+        );
+      } finally {
+        setLoading(false);
+      }
     };
 
-    return (
-        <div className="flex h-screen w-full">
-            <div className="w-full hidden md:inline-block">
-                <img className="h-full w-full object-cover" src={demo_image2} alt="leftSideImage" />
-            </div>
+  return (
+    <div className="min-h-screen bg-[#f5f7fb] flex overflow-hidden">
+      {/* LEFT IMAGE */}
+      <div className="hidden lg:block lg:w-[52%] relative overflow-hidden">
+        <img
+          className="h-full w-full object-cover"
+          src={demo_image2}
+          alt="signup"
+        />
 
-            <div className="w-full flex flex-col items-center justify-center bg-white p-4">
-                <form
-                    className="md:w-96 w-full max-w-sm flex flex-col items-center justify-center p-4"
-                    onSubmit={handleSubmit}
-                >
-                    <h2 className="text-4xl text-gray-900 font-medium">Sign up</h2>
-                    <p className="text-sm text-gray-500/90 mt-3 text-center">
-                        Join us! Create your account to start shopping
-                    </p>
+        {/* OVERLAY */}
+        <div className="absolute inset-0 bg-gradient-to-r from-black/20 to-transparent" />
 
-                    {/* Name */}
-                    <div className="flex items-center w-full bg-transparent border border-gray-300/60 h-12 rounded-full overflow-hidden pl-6 gap-2 mt-5">
-                        <svg className="h-4 w-4 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
-                        </svg>
-                        <input
-                            type="text"
-                            placeholder="Full Name"
-                            className="bg-transparent text-gray-500/80 placeholder-gray-500/80 outline-none text-sm w-full h-full pr-4"
-                            required
-                            value={name}
-                            onChange={(e) => setName(e.target.value)}
-                        />
-                    </div>
+        {/* CONTENT */}
+        <div className="absolute bottom-12 left-12 text-white max-w-lg">
+          <div className="inline-flex items-center gap-2 bg-white/15 backdrop-blur-xl px-4 py-2 rounded-full text-sm mb-6">
+            <Sparkles size={16} />
 
-                    {/* Email */}
-                    <div className="flex items-center mt-6 w-full bg-transparent border border-gray-300/60 h-12 rounded-full overflow-hidden pl-6 gap-2">
-                        <svg width="16" height="11" viewBox="0 0 16 11" fill="none">
-                            <path
-                                fillRule="evenodd"
-                                clipRule="evenodd"
-                                d="M0 .55.571 0H15.43l.57.55v9.9l-.571.55H.57L0 10.45zm1.143 1.138V9.9h13.714V1.69l-6.503 4.8h-.697zM13.749 1.1H2.25L8 5.356z"
-                                fill="#6B7280"
-                            />
-                        </svg>
-                        <input
-                            type="email"
-                            placeholder="Email id"
-                            className="bg-transparent text-gray-500/80 placeholder-gray-500/80 outline-none text-sm w-full h-full pr-4"
-                            required
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                        />
-                    </div>
+            Premium Shopping
+            Experience
+          </div>
 
-                    {/* Password */}
-                    <div className="flex items-center mt-6 w-full bg-transparent border border-gray-300/60 h-12 rounded-full overflow-hidden pl-6 gap-2">
-                        <svg width="13" height="17" viewBox="0 0 13 17" fill="none">
-                            <path
-                                d="M13 8.5c0-.938-.729-1.7-1.625-1.7h-.812V4.25C10.563 1.907 8.74 0 6.5 0S2.438 1.907 2.438 4.25V6.8h-.813C.729 6.8 0 7.562 0 8.5v6.8c0 .938.729 1.7 1.625 1.7h9.75c.896 0 1.625-.762 1.625-1.7zM4.063 4.25c0-1.406 1.093-2.55 2.437-2.55s2.438 1.144 2.438 2.55V6.8H4.061z"
-                                fill="#6B7280"
-                            />
-                        </svg>
-                        <input
-                            type="password"
-                            placeholder="Password"
-                            className="bg-transparent text-gray-500/80 placeholder-gray-500/80 outline-none text-sm w-full h-full pr-4"
-                            required
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                        />
-                    </div>
+          <h1 className="text-5xl font-semibold leading-tight">
+            Discover Fashion
+            That Defines You
+          </h1>
 
-                    {/* Role Selection */}
-                    <div className="flex items-center mt-6 w-full bg-transparent border border-gray-300/60 h-12 rounded-full pl-6 pr-4">
-                        <svg className="h-4 w-4 text-gray-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                            <path d="M10 2a6 6 0 100 12 6 6 0 000-12zM8 10a2 2 0 114 0 2 2 0 01-4 0z" />
-                        </svg>
-                        <select
-                            className="bg-transparent text-gray-500/80 outline-none text-sm w-full h-full"
-                            value={role}
-                            onChange={(e) => setRole(e.target.value)}
-                        >
-                            <option value="customer">Customer</option>
-                            <option value="admin">Admin</option>
-                        </select>
-                    </div>
-
-                    {/* Submit */}
-                    <button
-                        type="submit"
-                        className="mt-8 w-full h-11 rounded-full text-white bg-indigo-500 hover:opacity-90 transition-opacity"
-                    >
-                        Sign up
-                    </button>
-
-                    <p className="text-gray-500/90 text-sm mt-4">
-                        Already have an account?
-                        <Link to='/login' className='text-indigo-400 hover:underline'> Sign in</Link>
-                    </p>
-                </form>
-            </div>
+          <p className="mt-5 text-white/80 text-lg leading-relaxed">
+            Join AdiShop and
+            explore premium
+            collections, trending
+            styles and exclusive
+            offers.
+          </p>
         </div>
-    );
+      </div>
+
+      {/* RIGHT */}
+      <div className="flex-1 flex items-center justify-center px-5 py-10">
+        <motion.div
+          initial={{
+            opacity: 0,
+            y: 20,
+          }}
+          animate={{
+            opacity: 1,
+            y: 0,
+          }}
+          className="w-full max-w-md"
+        >
+          {/* CARD */}
+          <div className="bg-white rounded-[34px] border border-gray-100 shadow-xl p-8 md:p-10">
+            {/* HEADER */}
+            <div className="text-center">
+              <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-r from-blue-500 to-purple-500 text-white shadow-lg">
+                <Sparkles size={24} />
+              </div>
+
+              <h2 className="text-4xl font-semibold text-gray-900 tracking-tight mt-6">
+                Create Account
+              </h2>
+
+              <p className="text-gray-500 mt-3 text-sm leading-relaxed">
+                Join AdiShop and
+                start your premium
+                shopping experience
+              </p>
+            </div>
+
+            {/* FORM */}
+            <form
+              onSubmit={
+                handleSubmit
+              }
+              className="mt-10 space-y-5"
+            >
+              {/* NAME */}
+              <div>
+                <label className="text-sm font-medium text-gray-700 mb-2 block">
+                  Full Name
+                </label>
+
+                <div className="relative">
+                  <User
+                    size={18}
+                    className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"
+                  />
+
+                  <input
+                    type="text"
+                    placeholder="Enter your full name"
+                    className="w-full h-12 rounded-2xl border border-gray-200 bg-gray-50 pl-12 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all duration-300"
+                    required
+                    value={name}
+                    onChange={(
+                      e
+                    ) =>
+                      setName(
+                        e.target
+                          .value
+                      )
+                    }
+                  />
+                </div>
+              </div>
+
+              {/* EMAIL */}
+              <div>
+                <label className="text-sm font-medium text-gray-700 mb-2 block">
+                  Email Address
+                </label>
+
+                <div className="relative">
+                  <Mail
+                    size={18}
+                    className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"
+                  />
+
+                  <input
+                    type="email"
+                    placeholder="Enter your email"
+                    className="w-full h-12 rounded-2xl border border-gray-200 bg-gray-50 pl-12 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all duration-300"
+                    required
+                    value={email}
+                    onChange={(
+                      e
+                    ) =>
+                      setEmail(
+                        e.target
+                          .value
+                      )
+                    }
+                  />
+                </div>
+              </div>
+
+              {/* PASSWORD */}
+              <div>
+                <label className="text-sm font-medium text-gray-700 mb-2 block">
+                  Password
+                </label>
+
+                <div className="relative">
+                  <Lock
+                    size={18}
+                    className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"
+                  />
+
+                  <input
+                    type={
+                      showPassword
+                        ? "text"
+                        : "password"
+                    }
+                    placeholder="Create password"
+                    className="w-full h-12 rounded-2xl border border-gray-200 bg-gray-50 pl-12 pr-12 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all duration-300"
+                    required
+                    value={
+                      password
+                    }
+                    onChange={(
+                      e
+                    ) =>
+                      setPassword(
+                        e.target
+                          .value
+                      )
+                    }
+                  />
+
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setShowPassword(
+                        !showPassword
+                      )
+                    }
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400"
+                  >
+                    {showPassword ? (
+                      <EyeOff
+                        size={18}
+                      />
+                    ) : (
+                      <Eye
+                        size={18}
+                      />
+                    )}
+                  </button>
+                </div>
+              </div>
+
+              {/* ROLE */}
+              <div>
+                <label className="text-sm font-medium text-gray-700 mb-2 block">
+                  Account Type
+                </label>
+
+                <div className="relative">
+                  <ShieldCheck
+                    size={18}
+                    className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"
+                  />
+
+                  <select
+                    className="w-full h-12 rounded-2xl border border-gray-200 bg-gray-50 pl-12 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all duration-300 appearance-none"
+                    value={role}
+                    onChange={(
+                      e
+                    ) =>
+                      setRole(
+                        e.target
+                          .value
+                      )
+                    }
+                  >
+                    <option value="customer">
+                      Customer
+                    </option>
+
+                    <option value="admin">
+                      Admin
+                    </option>
+                  </select>
+                </div>
+              </div>
+
+              {/* BUTTON */}
+              <motion.button
+                whileHover={{
+                  scale: 1.01,
+                }}
+                whileTap={{
+                  scale: 0.99,
+                }}
+                type="submit"
+                disabled={
+                  loading
+                }
+                className="w-full h-12 rounded-2xl bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 text-white font-medium shadow-lg hover:shadow-xl transition-all duration-300 mt-3"
+              >
+                {loading
+                  ? "Creating Account..."
+                  : "Create Account"}
+              </motion.button>
+            </form>
+
+            {/* LOGIN */}
+            <p className="text-center text-gray-500 text-sm mt-7">
+              Already have an
+              account?
+              <Link
+                to="/login"
+                className="text-indigo-600 font-medium hover:underline ml-1"
+              >
+                Sign in
+              </Link>
+            </p>
+          </div>
+        </motion.div>
+      </div>
+    </div>
+  );
 };
 
 export default Signup;
